@@ -15,17 +15,30 @@ import cgb.transfer.exception.*;
 import java.time.LocalDate;
 import java.util.Optional;
 
+/**
+ * Classe de gestion de la route pour la gestion des transferts.
+ */
 @RestController
 @RequestMapping("/api/transfers")
 public class TransferRestController {
 
     @Autowired
+    /**
+     * Lien au Service de gestion des transferts.
+     */
     private TransferService transferService;
 
 
     
 
     @PostMapping
+    /**
+     * Fonction de gestion de la création d'un transfert.
+     * 
+     * @param transferRequest  L'objet JSON envoyé dans le corps de la requête POST
+     * @return  L'objet JSON correspondant au transfer s'il est valide.
+     * 			Une réponse 'BAD_REQUEST' si une RuntimeException est rencontrée.
+     */
     public ResponseEntity<?> createTransfer(@RequestBody TransferRequest transferRequest) {
     //public ResponseEntity<Transfer> createTransfer(@RequestBody TransferRequest transferRequest) {
         try {
@@ -44,6 +57,15 @@ public class TransferRestController {
     }  
     
     @DeleteMapping
+    /**
+     * Fonction de suppression d'un transfert dans la BDD.
+     * 
+     * @param id  L'identifiant unique du transfert à supprimer, 
+     * 			  renseigné dans le corps de la requête.
+     * @return  L'objet supprimé si l'opération a réussi.
+     * 			Une réponse 'BAD_REQUEST' si une RuntimeException 
+     * 			ou une DeleteTransferException est rencontrée.
+     */
     public ResponseEntity<?> deleteTransfer(@RequestBody Long id) {
     //public ResponseEntity<Transfer> createTransfer(@RequestBody TransferRequest transferRequest) {
         try {
@@ -69,9 +91,17 @@ public class TransferRestController {
     
 }
 
-
+/**
+ * Classe de modélisation d'un message d'erreur personnalisable.
+ */
 class TransferResponse {
+	/**
+	 * Le status Http présent dans le message d'erreur.
+	 */
     private String status;
+    /**
+     * Le contenu du message d'erreur.
+     */
     private String message;
 
     // Constructeur

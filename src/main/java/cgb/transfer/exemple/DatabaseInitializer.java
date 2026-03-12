@@ -7,6 +7,9 @@ import cgb.transfer.entity.Account;
 import cgb.transfer.repository.AccountRepository;
 import jakarta.annotation.PostConstruct;
 
+/**
+ * Classe responsable de l'initialisation des données des comptes dans la base H2.
+ */
 @Component
 public class DatabaseInitializer {
 
@@ -53,6 +56,10 @@ public class DatabaseInitializer {
         accountRepository.save(account3);
     }
     
+    /**
+     * Fonction de valorisation de la base appellée si cette dernière est vide.
+     * @param accountRepository  L'instance de Repository actuellement utilisée.
+     */
     public static void insertSampleData(AccountRepository accountRepository) {
         // Insérer des comptes d'exemple
         Account account1 = new Account();
