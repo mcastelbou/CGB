@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import cgb.transfer.entity.Transfer;
 
+@SuppressWarnings("unused")
 @SpringBootTest
 @AutoConfigureMockMvc
 @WithMockUser(username = "user")

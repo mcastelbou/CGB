@@ -12,4 +12,8 @@ public class InvalidUnCheckableIbanException extends ExceptionInvalideIBAN {
 		super(fii.name());
 		// TODO Auto-generated constructor stub
 	}
+	
+	public InvalidUnCheckableIbanException() {
+		super("Nous n'avons pas pu vérifier l'IBAN fourni.");
+	}
 }

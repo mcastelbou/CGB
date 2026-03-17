@@ -2,6 +2,9 @@ package cgb.utils;
 
 import org.apache.commons.validator.routines.IBANValidator;
 
+import cgb.transfer.exception.InvalidIbanFormatException;
+import cgb.transfer.exception.InvalidUnCheckableIbanException;
+
 /**
  * Classe de validation du format des IBAN de l'application CGB
  */
@@ -16,7 +19,7 @@ public class CGBIbanValidator {
 	 * 
 	 * @return L'instance de validateur d'IBAN.
 	 */
-	public CGBIbanValidator getIntanceValidator() {
+	public static CGBIbanValidator getIntanceValidator() {
 		if (uniqueinstance == null) {
 			uniqueinstance = new CGBIbanValidator();
 		}
@@ -29,9 +32,13 @@ public class CGBIbanValidator {
 	 * 
 	 * @param iban  L'IBAN d'un boug.
 	 * @return  True si la structure est bonne, sinon False.
+	 * @throws InvalidIbanFormatException 
 	 */
-	public boolean isIbanStructureValide(String iban) {
-		return iban.matches("FR[0-9]{25}");
+	public boolean isIbanStructureValide(String iban) throws InvalidIbanFormatException {
+		if (iban.matches("^FR[0-9]{25}$")) {
+			return true;
+		}
+		throw new InvalidIbanFormatException();
 	}
 
 	/**
@@ -39,9 +46,17 @@ public class CGBIbanValidator {
 	 * 
 	 * @param iban  L'IBAN du même boug.
 	 * @return  True si l'IBAN et son CRC sont valides, sinon False.
+	 * @throws InvalidIbanFormatException
+	 * @throws InvalidUnCheckableIbanException 
 	 */
-	public boolean isIbanValide(String iban) {
-		return IBANValidator.getInstance().isValid(iban);
+	public boolean isIbanValide(String iban) throws InvalidIbanFormatException, InvalidUnCheckableIbanException {
+		if (this.isIbanStructureValide(iban)) {
+			if (IBANValidator.getInstance().isValid(iban)) {
+				return true;
+			}
+			throw new InvalidUnCheckableIbanException();
+		}
+		return false;
 	}
 
 	/**
@@ -49,9 +64,13 @@ public class CGBIbanValidator {
 	 * 
 	 * @param iban  L'IBAN de Jean Castex.
 	 * @return  'FR'.
+	 * @throws InvalidIbanFormatException 
 	 */
-	public String getCodePays(String iban) {
-		return iban.substring(0, 2);
+	public String getCodePays(String iban) throws InvalidIbanFormatException {
+		if (this.isIbanStructureValide(iban)) {
+			return iban.substring(0, 2);
+		}
+		return null;
 	}
 
 	/**
@@ -59,9 +78,13 @@ public class CGBIbanValidator {
 	 * 
 	 * @param iban  Le Liban.
 	 * @return  CR7 en string.
+	 * @throws InvalidIbanFormatException 
 	 */
-	public String getCRC(String iban) {
-		return iban.substring(2, 4);
+	public String getCRC(String iban) throws InvalidIbanFormatException {
+		if (this.isIbanStructureValide(iban)) {
+			return iban.substring(2, 4);
+		}
+		return null;
 	}
 
 	/**
@@ -69,8 +92,12 @@ public class CGBIbanValidator {
 	 * 
 	 * @param iban  L'IBAN du compte actuellement traité.
 	 * @return  Le reste de L'IBAN
+	 * @throws InvalidIbanFormatException 
 	 */
-	public String getBBAN(String iban) {
-		return iban.substring(4);
+	public String getBBAN(String iban) throws InvalidIbanFormatException {
+		if (this.isIbanStructureValide(iban)) {
+			return iban.substring(4);
+		}
+		return null;
 	}
 }

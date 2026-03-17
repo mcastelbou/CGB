@@ -11,5 +11,9 @@ public class InvalidIbanFormatException extends ExceptionInvalideIBAN{
 		super(fif.name());
 		// TODO Auto-generated constructor stub
 	}
+	
+	public InvalidIbanFormatException() {
+		super("Format d'IBAN non reconnu.");
+	}
 
 }
