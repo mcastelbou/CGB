@@ -12,7 +12,8 @@ public class CGBIbanValidator {
 
 	private static CGBIbanValidator uniqueinstance;
 
-	protected CGBIbanValidator() {}
+	protected CGBIbanValidator() {
+	}
 
 	/**
 	 * Fonction pour récupération du singleton.
@@ -30,9 +31,9 @@ public class CGBIbanValidator {
 	 * Fonction de vérification de structure d'un IBAN français tel que :
 	 * FRXXXXXXXXXXXXXXXXXXXXXXXXX où X est un nombre.
 	 * 
-	 * @param iban  L'IBAN d'un boug.
-	 * @return  True si la structure est bonne, sinon False.
-	 * @throws InvalidIbanFormatException 
+	 * @param iban Un IBAN français.
+	 * @return True si la structure est bonne.
+	 * @throws InvalidIbanFormatException
 	 */
 	public boolean isIbanStructureValide(String iban) throws InvalidIbanFormatException {
 		if (iban.matches("^FR[0-9]{25}$")) {
@@ -44,10 +45,10 @@ public class CGBIbanValidator {
 	/**
 	 * Même fonction que la structure mais avec une vérification du CRC.
 	 * 
-	 * @param iban  L'IBAN du même boug.
-	 * @return  True si l'IBAN et son CRC sont valides, sinon False.
+	 * @param iban Un IBAN français.
+	 * @return True si l'IBAN et son CRC sont valides, sinon False.
 	 * @throws InvalidIbanFormatException
-	 * @throws InvalidUnCheckableIbanException 
+	 * @throws InvalidUnCheckableIbanException
 	 */
 	public boolean isIbanValide(String iban) throws InvalidIbanFormatException, InvalidUnCheckableIbanException {
 		if (this.isIbanStructureValide(iban)) {
@@ -62,9 +63,9 @@ public class CGBIbanValidator {
 	/**
 	 * Getter des 2 premiers caractères de l'IBAN.
 	 * 
-	 * @param iban  L'IBAN de Jean Castex.
-	 * @return  'FR'.
-	 * @throws InvalidIbanFormatException 
+	 * @param iban Un IBAN français.
+	 * @return Les deux premiers caractères de l'IBAN (en l'occurence 'FR').
+	 * @throws InvalidIbanFormatException
 	 */
 	public String getCodePays(String iban) throws InvalidIbanFormatException {
 		if (this.isIbanStructureValide(iban)) {
@@ -76,9 +77,9 @@ public class CGBIbanValidator {
 	/**
 	 * Getter des 2 chiffres après le 'FR'.
 	 * 
-	 * @param iban  Le Liban.
-	 * @return  CR7 en string.
-	 * @throws InvalidIbanFormatException 
+	 * @param iban Un IBAN français.
+	 * @return Le CRC (chiffres de sécurité).
+	 * @throws InvalidIbanFormatException
 	 */
 	public String getCRC(String iban) throws InvalidIbanFormatException {
 		if (this.isIbanStructureValide(iban)) {
@@ -90,9 +91,9 @@ public class CGBIbanValidator {
 	/**
 	 * Getter du BBAN.
 	 * 
-	 * @param iban  L'IBAN du compte actuellement traité.
-	 * @return  Le reste de L'IBAN
-	 * @throws InvalidIbanFormatException 
+	 * @param iban Un IBAN français.
+	 * @return L'IBAN sans le CRC et le code de pays.
+	 * @throws InvalidIbanFormatException
 	 */
 	public String getBBAN(String iban) throws InvalidIbanFormatException {
 		if (this.isIbanStructureValide(iban)) {
