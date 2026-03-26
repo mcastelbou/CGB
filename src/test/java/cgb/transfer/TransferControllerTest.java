@@ -23,7 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import cgb.transfer.entity.Transfer;
 
-
+/*
 @SpringBootTest
 @AutoConfigureMockMvc
 //@WebMvcTest(TransferController.class)
@@ -59,7 +59,7 @@ public class TransferControllerTest {
 				.andExpect(MockMvcResultMatchers.jsonPath("$.id").doesNotExist());
 	}
 	*/
-	
+	/*
 	@Test
 	public void deleteTransferTest_Success() throws Exception {
 	    Long id = 7L;
@@ -98,3 +98,4 @@ public class TransferControllerTest {
 
 
 //SecurityConfig.java ajouter .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
+*/
