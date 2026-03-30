@@ -9,7 +9,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-
 import java.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -22,7 +21,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import cgb.transfer.entity.Transfer;
-
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -46,19 +44,17 @@ public class TransferControllerTest {
 				.andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(MockMvcResultMatchers.jsonPath("$.id").exists());
 	}
-	
+
 	@Test
 	public void deleteTransferTest_Success() throws Exception {
-	    Long id = 1L;
-	    mockMvc.perform(delete("/api/transfers")
-	            .contentType(MediaType.APPLICATION_JSON)
-	            .content(String.valueOf(id)))
-	            .andExpect(status().isOk())
-	            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-	            .andExpect(MockMvcResultMatchers.jsonPath("$.status").value("SUCCESS"))
-	            .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists());
+		Long id = 1L;
+		mockMvc.perform(delete("/api/transfers").contentType(MediaType.APPLICATION_JSON).content(String.valueOf(id)))
+				.andExpect(status().isOk())
+				.andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+				.andExpect(MockMvcResultMatchers.jsonPath("$.status").value("SUCCESS"))
+				.andExpect(MockMvcResultMatchers.jsonPath("$.message").exists());
 	}
-	
+
 	@Test
 	public void createTransferTest_Failure() throws Exception {
 		Transfer transfer = new Transfer();
@@ -67,20 +63,16 @@ public class TransferControllerTest {
 		transfer.setDestinationAccountNumber("123456789");
 		transfer.setSourceAccountNumber("987654321");
 		transfer.setTransferDate(LocalDate.parse("2018-12-06"));
-		mockMvc.perform(post("/api/transfers")
-				.content(asJsonString(transfer))
-				.contentType(MediaType.APPLICATION_JSON))
+		mockMvc.perform(post("/api/transfers").content(asJsonString(transfer)).contentType(MediaType.APPLICATION_JSON))
 				.andExpect(status().isBadRequest());
 	}
-	
+
 	@Test
 	void shouldDeleteTransfer_Failure() throws Exception {
 		Long id = null;
-		
-		mockMvc.perform(delete("/api/transfers")
-				.contentType(MediaType.APPLICATION_JSON)
-	            .content(String.valueOf(id)))
-	            .andExpect(status().isBadRequest());
+
+		mockMvc.perform(delete("/api/transfers").contentType(MediaType.APPLICATION_JSON).content(String.valueOf(id)))
+				.andExpect(status().isBadRequest());
 	}
 
 	public static String asJsonString(final Object obj) {
@@ -91,6 +83,5 @@ public class TransferControllerTest {
 		}
 	}
 }
-
 
 //SecurityConfig.java ajouter .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));

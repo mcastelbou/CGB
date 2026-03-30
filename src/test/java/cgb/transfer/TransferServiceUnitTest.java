@@ -21,20 +21,20 @@ import cgb.transfer.service.TransferService;
 
 @ExtendWith(MockitoExtension.class)
 public class TransferServiceUnitTest {
-	
+
 	private static Transfer mockTransfer;
 	private static Account sourceAccount;
 	private static Account destinationAccount;
 
 	@Mock
 	private AccountRepository accountRepository;
-	
+
 	@Mock
 	private TransferRepository transferRepository;
-	
+
 	@InjectMocks
 	private TransferService transferService;
-	
+
 	@BeforeAll
 	static void initObjects() {
 		mockTransfer = new Transfer();
@@ -43,25 +43,26 @@ public class TransferServiceUnitTest {
 		mockTransfer.setAmount(2.00);
 		mockTransfer.setTransferDate(LocalDate.now());
 		mockTransfer.setDescription("Deux euros!");
-		
+
 		sourceAccount = new Account();
 		sourceAccount.setAccountNumber("123456789");
 		sourceAccount.setSolde(500.00);
-		
+
 		destinationAccount = new Account();
 		destinationAccount.setAccountNumber("567891234");
 		destinationAccount.setSolde(500.00);
 	}
-	
+
 	@Test
-	void shouldReturnTransfer_Success() {		
+	void shouldReturnTransfer_Success() {
 		when(accountRepository.findById("123456789")).thenReturn(Optional.of(sourceAccount));
 		when(accountRepository.findById("567891234")).thenReturn(Optional.of(destinationAccount));
-		
+
 		when(transferRepository.save(Mockito.any(Transfer.class))).thenReturn(mockTransfer);
-		
-		Transfer transfer = transferService.createTransfer("123456789", "567891234", 2.00, LocalDate.now(), "Deux euros!");
-		
+
+		Transfer transfer = transferService.createTransfer("123456789", "567891234", 2.00, LocalDate.now(),
+				"Deux euros!");
+
 		assertEquals("123456789", transfer.getSourceAccountNumber());
 		assertEquals("567891234", transfer.getDestinationAccountNumber());
 		assertEquals(2.00, transfer.getAmount());
@@ -69,35 +70,38 @@ public class TransferServiceUnitTest {
 		assertEquals("Deux euros!", transfer.getDescription());
 		assertEquals(transfer, mockTransfer);
 	}
-	
+
 	@Test
 	void shouldDeleteTransfer_Success() {
 		when(transferRepository.findById(mockTransfer.getId())).thenReturn(Optional.of(mockTransfer));
 		Transfer transfer = null;
-		
+
 		try {
 			transfer = transferService.deleteTransfer(mockTransfer.getId());
 		} catch (DeleteTransferException ex) {
 			System.out.println(ex.getMessage());
 		}
-		
+
 		assertEquals(transfer, mockTransfer);
 	}
-	
+
 	@Test
-	void shouldReturnTransfer_Failure() {		
+	void shouldReturnTransfer_Failure() {
 		when(accountRepository.findById("123456789")).thenReturn(Optional.of(sourceAccount));
 		when(accountRepository.findById("567891234")).thenReturn(Optional.of(destinationAccount));
-		
-		assertThrows(RuntimeException.class, () -> transferService.createTransfer("123456789", "XXXXXXXXX", 2.00, LocalDate.now(), "Deux euros!"));
-		assertThrows(RuntimeException.class, () -> transferService.createTransfer("XXXXXXXXX", "567891234", 2.00, LocalDate.now(), "Deux euros!"));
-		assertThrows(RuntimeException.class, () -> transferService.createTransfer("123456789", "567891234", 200000000000.00, LocalDate.now(), "Deux euros!"));
+
+		assertThrows(RuntimeException.class,
+				() -> transferService.createTransfer("123456789", "XXXXXXXXX", 2.00, LocalDate.now(), "Deux euros!"));
+		assertThrows(RuntimeException.class,
+				() -> transferService.createTransfer("XXXXXXXXX", "567891234", 2.00, LocalDate.now(), "Deux euros!"));
+		assertThrows(RuntimeException.class, () -> transferService.createTransfer("123456789", "567891234",
+				200000000000.00, LocalDate.now(), "Deux euros!"));
 	}
 
 	@Test
 	void shouldDeleteTransfer_Failure() {
 		when(transferRepository.findById(Mockito.anyLong())).thenReturn(Optional.empty());
-		
+
 		assertThrows(DeleteTransferException.class, () -> transferService.deleteTransfer(6767L));
 	}
 }

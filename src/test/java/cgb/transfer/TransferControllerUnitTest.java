@@ -26,15 +26,15 @@ import cgb.transfer.service.TransferService;
 @AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(TransferRestController.class)
 public class TransferControllerUnitTest {
-	
+
 	private static Transfer mockTransfer;
-	
+
 	@Autowired
 	private MockMvc mockMvc;
-	
+
 	@MockitoBean
 	private TransferService transferService;
-	
+
 	@BeforeAll
 	static void initObjects() {
 		mockTransfer = new Transfer();
@@ -45,60 +45,54 @@ public class TransferControllerUnitTest {
 		mockTransfer.setTransferDate(LocalDate.now());
 		mockTransfer.setDescription("Deux euros!");
 	}
-	
+
 	@Test
 	void shouldCreateTransfer_Success() throws Exception {
-		when(transferService.createTransfer(
-				Mockito.any(String.class),
-				Mockito.any(String.class),
-				Mockito.any(Double.class),
-				Mockito.any(LocalDate.class),
-				Mockito.any(String.class))).thenReturn(mockTransfer);
-		
-		mockMvc.perform(post("/api/transfers").contentType(MediaType.APPLICATION_JSON).content(asJsonString(mockTransfer)))
-			.andExpect(status().isOk())
-			.andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-			.andExpect(MockMvcResultMatchers.jsonPath("$.id").exists());
+		when(transferService.createTransfer(Mockito.any(String.class), Mockito.any(String.class),
+				Mockito.any(Double.class), Mockito.any(LocalDate.class), Mockito.any(String.class)))
+				.thenReturn(mockTransfer);
+
+		mockMvc.perform(
+				post("/api/transfers").contentType(MediaType.APPLICATION_JSON).content(asJsonString(mockTransfer)))
+				.andExpect(status().isOk())
+				.andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+				.andExpect(MockMvcResultMatchers.jsonPath("$.id").exists());
 	}
-	
+
 	@Test
 	void shouldDeleteTransfer_Success() throws Exception {
 		Long id = 1L;
 		when(transferService.deleteTransfer(Mockito.anyLong())).thenReturn(mockTransfer);
-		
-		mockMvc.perform(delete("/api/transfers")
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(String.valueOf(id)))
-		.andExpect(status().isOk())
-		.andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-		.andExpect(MockMvcResultMatchers.jsonPath("$.status").value("SUCCESS"))
-		.andExpect(MockMvcResultMatchers.jsonPath("$.message").exists());
+
+		mockMvc.perform(delete("/api/transfers").contentType(MediaType.APPLICATION_JSON).content(String.valueOf(id)))
+				.andExpect(status().isOk())
+				.andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+				.andExpect(MockMvcResultMatchers.jsonPath("$.status").value("SUCCESS"))
+				.andExpect(MockMvcResultMatchers.jsonPath("$.message").exists());
 	}
-	
+
 	@Test
 	void shouldCreateTransfer_Failure() throws Exception {
-		/*when(transferService.createTransfer(
-				Mockito.any(String.class),
-				Mockito.any(String.class),
-				Mockito.any(Double.class),
-				Mockito.any(LocalDate.class),
-				Mockito.any(String.class))).thenReturn(mockTransfer);*/
-		
+		/*
+		 * when(transferService.createTransfer( Mockito.any(String.class),
+		 * Mockito.any(String.class), Mockito.any(Double.class),
+		 * Mockito.any(LocalDate.class),
+		 * Mockito.any(String.class))).thenReturn(mockTransfer);
+		 */
+
 		mockMvc.perform(post("/api/transfers").contentType(MediaType.APPLICATION_JSON).content(asJsonString(null)))
-			.andExpect(status().isBadRequest());
+				.andExpect(status().isBadRequest());
 	}
-	
+
 	@Test
 	void shouldDeleteTransfer_Failure() throws Exception {
 		Long id = null;
-		//when(transferService.deleteTransfer(Mockito.anyLong())).thenReturn(mockTransfer);
-		
-		mockMvc.perform(delete("/api/transfers")
-				.contentType(MediaType.APPLICATION_JSON)
-	            .content(String.valueOf(id)))
-	            .andExpect(status().isBadRequest());
+		// when(transferService.deleteTransfer(Mockito.anyLong())).thenReturn(mockTransfer);
+
+		mockMvc.perform(delete("/api/transfers").contentType(MediaType.APPLICATION_JSON).content(String.valueOf(id)))
+				.andExpect(status().isBadRequest());
 	}
-	
+
 	public static String asJsonString(final Object obj) {
 		try {
 			return new ObjectMapper().findAndRegisterModules().writeValueAsString(obj);
