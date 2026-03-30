@@ -1,5 +1,8 @@
 package cgb.transfer.exception;
 
+/**
+ * Classe d'exception lancée lors d'une erreur de suppression d'un transfert.
+ */
 public class DeleteTransferException extends TransferException{
 	private static final long serialVersionUID = 1L;
 
