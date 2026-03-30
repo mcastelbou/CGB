@@ -23,10 +23,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import cgb.transfer.entity.Transfer;
 
-/*
+
 @SpringBootTest
 @AutoConfigureMockMvc
-//@WebMvcTest(TransferController.class)
 @WithMockUser(username = "user")
 public class TransferControllerTest {
 
@@ -47,22 +46,10 @@ public class TransferControllerTest {
 				.andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(MockMvcResultMatchers.jsonPath("$.id").exists());
 	}
-
-	/*
-	// Test for successful transfer creation
+	
 	@Test
 	public void deleteTransferTest_Success() throws Exception {
-		String id="2";
-		mockMvc.perform(delete("/api/transfers").contentType(MediaType.ALL_VALUE).content(id))
-				.andExpect(status().isOk())
-				.andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-				.andExpect(MockMvcResultMatchers.jsonPath("$.id").doesNotExist());
-	}
-	*/
-	/*
-	@Test
-	public void deleteTransferTest_Success() throws Exception {
-	    Long id = 7L;
+	    Long id = 1L;
 	    mockMvc.perform(delete("/api/transfers")
 	            .contentType(MediaType.APPLICATION_JSON)
 	            .content(String.valueOf(id)))
@@ -71,7 +58,6 @@ public class TransferControllerTest {
 	            .andExpect(MockMvcResultMatchers.jsonPath("$.status").value("SUCCESS"))
 	            .andExpect(MockMvcResultMatchers.jsonPath("$.message").exists());
 	}
-	
 	
 	@Test
 	public void createTransferTest_Failure() throws Exception {
@@ -86,6 +72,16 @@ public class TransferControllerTest {
 				.contentType(MediaType.APPLICATION_JSON))
 				.andExpect(status().isBadRequest());
 	}
+	
+	@Test
+	void shouldDeleteTransfer_Failure() throws Exception {
+		Long id = null;
+		
+		mockMvc.perform(delete("/api/transfers")
+				.contentType(MediaType.APPLICATION_JSON)
+	            .content(String.valueOf(id)))
+	            .andExpect(status().isBadRequest());
+	}
 
 	public static String asJsonString(final Object obj) {
 		try {
@@ -98,4 +94,3 @@ public class TransferControllerTest {
 
 
 //SecurityConfig.java ajouter .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
-*/
