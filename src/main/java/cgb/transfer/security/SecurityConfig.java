@@ -4,7 +4,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.SecurityFilterChain; 
+
 
 /*
  * 
@@ -32,11 +33,13 @@ public class SecurityConfig {
 
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-		http.csrf(csrf -> csrf.disable()) // Désactive le CSRF
-				.authorizeHttpRequests((requests) -> requests.anyRequest().authenticated() // authorise les requêtes
-																							// identifiées
-				).httpBasic(Customizer.withDefaults())
-				.headers(headers -> headers.frameOptions(frame -> frame.sameOrigin())); // Pour H2 en même frame
+		http
+		.csrf(csrf -> csrf.disable()) // Désactive le CSRF
+		.authorizeHttpRequests(
+				(requests) -> requests.anyRequest().authenticated() //authorise les requêtes identifiées
+				)
+		.httpBasic(Customizer.withDefaults())
+		.headers(headers -> headers.frameOptions(frame -> frame.sameOrigin())); //Pour H2 en même frame
 		return http.build();
 	}
 
