@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import cgb.transfer.entity.Transfer;
 
+@SuppressWarnings("unused")
 @SpringBootTest
 @AutoConfigureMockMvc
 @WithMockUser(username = "user")
@@ -36,8 +37,8 @@ public class TransferControllerTest {
 		Transfer transfer = new Transfer();
 		transfer.setAmount(10.0);
 		transfer.setDescription("Test du transfer");
-		transfer.setDestinationAccountNumber("123456789");
-		transfer.setSourceAccountNumber("234567891");
+		transfer.setDestinationAccountNumber("FR7618315100001028575571887");
+		transfer.setSourceAccountNumber("FR7618315100000406690515531");
 		transfer.setTransferDate(LocalDate.parse("2018-12-06"));
 		mockMvc.perform(post("/api/transfers").contentType(MediaType.APPLICATION_JSON).content(asJsonString(transfer)))
 				.andExpect(status().isOk())
@@ -60,8 +61,8 @@ public class TransferControllerTest {
 		Transfer transfer = new Transfer();
 		transfer.setAmount(400000.0);
 		transfer.setDescription("Test du transfer");
-		transfer.setDestinationAccountNumber("123456789");
-		transfer.setSourceAccountNumber("987654321");
+		transfer.setDestinationAccountNumber("FR7618315100000406690515531");
+		transfer.setSourceAccountNumber("FR7618315100001028575571887");
 		transfer.setTransferDate(LocalDate.parse("2018-12-06"));
 		mockMvc.perform(post("/api/transfers").content(asJsonString(transfer)).contentType(MediaType.APPLICATION_JSON))
 				.andExpect(status().isBadRequest());

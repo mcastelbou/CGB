@@ -38,33 +38,33 @@ public class TransferServiceUnitTest {
 	@BeforeAll
 	static void initObjects() {
 		mockTransfer = new Transfer();
-		mockTransfer.setSourceAccountNumber("123456789");
-		mockTransfer.setDestinationAccountNumber("567891234");
+		mockTransfer.setSourceAccountNumber("FR7618315100001028575571887");
+		mockTransfer.setDestinationAccountNumber("FR7618315100000406690515531");
 		mockTransfer.setAmount(2.00);
 		mockTransfer.setTransferDate(LocalDate.now());
 		mockTransfer.setDescription("Deux euros!");
 
 		sourceAccount = new Account();
-		sourceAccount.setAccountNumber("123456789");
+		sourceAccount.setAccountNumber("FR7618315100001028575571887");
 		sourceAccount.setSolde(500.00);
 
 		destinationAccount = new Account();
-		destinationAccount.setAccountNumber("567891234");
+		destinationAccount.setAccountNumber("FR7618315100000406690515531");
 		destinationAccount.setSolde(500.00);
 	}
 
 	@Test
 	void shouldReturnTransfer_Success() {
-		when(accountRepository.findById("123456789")).thenReturn(Optional.of(sourceAccount));
-		when(accountRepository.findById("567891234")).thenReturn(Optional.of(destinationAccount));
+		when(accountRepository.findById("FR7618315100001028575571887")).thenReturn(Optional.of(sourceAccount));
+		when(accountRepository.findById("FR7618315100000406690515531")).thenReturn(Optional.of(destinationAccount));
 
 		when(transferRepository.save(Mockito.any(Transfer.class))).thenReturn(mockTransfer);
 
-		Transfer transfer = transferService.createTransfer("123456789", "567891234", 2.00, LocalDate.now(),
-				"Deux euros!");
+		Transfer transfer = transferService.createTransfer("FR7618315100001028575571887", "FR7618315100000406690515531",
+				2.00, LocalDate.now(), "Deux euros!");
 
-		assertEquals("123456789", transfer.getSourceAccountNumber());
-		assertEquals("567891234", transfer.getDestinationAccountNumber());
+		assertEquals("FR7618315100001028575571887", transfer.getSourceAccountNumber());
+		assertEquals("FR7618315100000406690515531", transfer.getDestinationAccountNumber());
 		assertEquals(2.00, transfer.getAmount());
 		assertEquals(LocalDate.now(), transfer.getTransferDate());
 		assertEquals("Deux euros!", transfer.getDescription());
@@ -87,15 +87,15 @@ public class TransferServiceUnitTest {
 
 	@Test
 	void shouldReturnTransfer_Failure() {
-		when(accountRepository.findById("123456789")).thenReturn(Optional.of(sourceAccount));
-		when(accountRepository.findById("567891234")).thenReturn(Optional.of(destinationAccount));
+		when(accountRepository.findById("FR7618315100001028575571887")).thenReturn(Optional.of(sourceAccount));
+		when(accountRepository.findById("FR7618315100000406690515531")).thenReturn(Optional.of(destinationAccount));
 
-		assertThrows(RuntimeException.class,
-				() -> transferService.createTransfer("123456789", "XXXXXXXXX", 2.00, LocalDate.now(), "Deux euros!"));
-		assertThrows(RuntimeException.class,
-				() -> transferService.createTransfer("XXXXXXXXX", "567891234", 2.00, LocalDate.now(), "Deux euros!"));
-		assertThrows(RuntimeException.class, () -> transferService.createTransfer("123456789", "567891234",
-				200000000000.00, LocalDate.now(), "Deux euros!"));
+		assertThrows(RuntimeException.class, () -> transferService.createTransfer("FR7618315100001028575571887",
+				"XXXXXXXXX", 2.00, LocalDate.now(), "Deux euros!"));
+		assertThrows(RuntimeException.class, () -> transferService.createTransfer("XXXXXXXXX",
+				"FR7618315100000406690515531", 2.00, LocalDate.now(), "Deux euros!"));
+		assertThrows(RuntimeException.class, () -> transferService.createTransfer("FR7618315100001028575571887",
+				"FR7618315100000406690515531", 200000000000.00, LocalDate.now(), "Deux euros!"));
 	}
 
 	@Test
