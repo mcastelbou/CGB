@@ -67,4 +67,8 @@ public class TransferRequest {
 		this.description = description;
 	}
 
+	public boolean hasNoDate() {
+		return this.transferDate == null;
+	}
+
 }

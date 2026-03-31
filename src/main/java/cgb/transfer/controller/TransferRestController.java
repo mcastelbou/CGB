@@ -1,5 +1,7 @@
 package cgb.transfer.controller;
 
+import java.time.LocalDate;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 //import org.springframework.http.HttpStatusCode;
@@ -40,11 +42,15 @@ public class TransferRestController {
 		// public ResponseEntity<Transfer> createTransfer(@RequestBody TransferRequest
 		// transferRequest) {
 		try {
+			LocalDate date = transferRequest.getTransferDate();
+			if (transferRequest.hasNoDate()) {
+				date = LocalDate.now();
+			}
 			Transfer transfer = transferService.createTransfer(transferRequest.getSourceAccountNumber(),
-					transferRequest.getDestinationAccountNumber(), transferRequest.getAmount(),
-					transferRequest.getTransferDate(), transferRequest.getDescription());
+					transferRequest.getDestinationAccountNumber(), transferRequest.getAmount(), date,
+					transferRequest.getDescription());
 			return ResponseEntity.ok(transfer);
-		} catch (RuntimeException e) {
+		} catch (CreateTransferException e) {
 			TransferResponse errorResponse = new TransferResponse("FAILURE", e.getMessage());
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
 		}
