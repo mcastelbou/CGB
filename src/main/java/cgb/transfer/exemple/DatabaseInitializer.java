@@ -9,7 +9,8 @@ import cgb.utils.IbanGenerator;
 import jakarta.annotation.PostConstruct;
 
 /**
- * Classe responsable de l'initialisation des données des comptes dans la base H2.
+ * Classe responsable de l'initialisation des données des comptes dans la base
+ * H2.
  */
 @Component
 public class DatabaseInitializer {
@@ -22,6 +23,9 @@ public class DatabaseInitializer {
 	 * 
 	 */
 
+	/**
+	 * Lien à la base des comptes
+	 */
 	private final AccountRepository accountRepository;
 
 	@Autowired
@@ -34,10 +38,17 @@ public class DatabaseInitializer {
 	public void init() {
 		// Vérifiez si la base de données est vide avant d'insérer des données
 		if (accountRepository.count() == 0) {
-			insertSampleDataNetanew(accountRepository);
+			insertSampleData(accountRepository);
 		}
 	}
 
+	/**
+	 * Fonction de valorisation de la base appellée si cette dernière est vide.
+	 * 
+	 * @param accountRepository L'instance de Repository actuellement utilisée.
+	 * 
+	 * @deprecated
+	 */
 	public static void insertSampleDataOld(AccountRepository accountRepository) {
 		// Insérer des comptes d'exemple
 		Account account1 = new Account();
@@ -57,9 +68,12 @@ public class DatabaseInitializer {
 	}
 
 	/**
-     * Fonction de valorisation de la base appellée si cette dernière est vide.
-     * @param accountRepository  L'instance de Repository actuellement utilisée.
-     */
+	 * Fonction de valorisation de la base appellée si cette dernière est vide.
+	 * 
+	 * @param accountRepository L'instance de Repository actuellement utilisée.
+	 * 
+	 * @deprecated
+	 */
 	public static void insertSampleDataOldNew(AccountRepository accountRepository) {
 		// Insérer des comptes d'exemple
 		Account account1 = new Account();
@@ -103,7 +117,13 @@ public class DatabaseInitializer {
 		accountRepository.save(account8);
 	}
 
-	public static void insertSampleDataNetanew(AccountRepository accountRepository) {
+	/**
+	 * Fonction de valorisation de la base appellée si cette dernière est vide. Les
+	 * comptes générés sont conformes à la norme IBAN.
+	 * 
+	 * @param accountRepository L'instance de Repository actuellement utilisée.
+	 */
+	public static void insertSampleData(AccountRepository accountRepository) {
 		// Insérer des comptes d'exemple avec un IBAN
 		Account account1 = new Account();
 		account1.setAccountNumber(IbanGenerator.generateValidIban());

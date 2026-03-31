@@ -39,8 +39,8 @@ public class TransferControllerUnitTest {
 	static void initObjects() {
 		mockTransfer = new Transfer();
 		mockTransfer.setId(1L);
-		mockTransfer.setSourceAccountNumber("123456789");
-		mockTransfer.setDestinationAccountNumber("567891234");
+		mockTransfer.setSourceAccountNumber("FR7618315100001028575571887");
+		mockTransfer.setDestinationAccountNumber("FR7618315100000406690515531");
 		mockTransfer.setAmount(2.00);
 		mockTransfer.setTransferDate(LocalDate.now());
 		mockTransfer.setDescription("Deux euros!");
