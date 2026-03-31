@@ -14,6 +14,7 @@ import org.mockito.junit.jupiter.*;
 
 import cgb.transfer.entity.Account;
 import cgb.transfer.entity.Transfer;
+import cgb.transfer.exception.CreateTransferException;
 import cgb.transfer.exception.DeleteTransferException;
 import cgb.transfer.repository.AccountRepository;
 import cgb.transfer.repository.TransferRepository;
@@ -54,7 +55,7 @@ public class TransferServiceUnitTest {
 	}
 
 	@Test
-	void shouldReturnTransfer_Success() {
+	void shouldReturnTransfer_Success() throws CreateTransferException {
 		when(accountRepository.findById("FR7618315100001028575571887")).thenReturn(Optional.of(sourceAccount));
 		when(accountRepository.findById("FR7618315100000406690515531")).thenReturn(Optional.of(destinationAccount));
 
@@ -87,15 +88,17 @@ public class TransferServiceUnitTest {
 
 	@Test
 	void shouldReturnTransfer_Failure() {
-		when(accountRepository.findById("FR7618315100001028575571887")).thenReturn(Optional.of(sourceAccount));
-		when(accountRepository.findById("FR7618315100000406690515531")).thenReturn(Optional.of(destinationAccount));
+		// when(accountRepository.findById("FR7618315100001028575571887")).thenReturn(Optional.of(sourceAccount));
+		// when(accountRepository.findById("FR7618315100000406690515531")).thenReturn(Optional.of(destinationAccount));
 
-		assertThrows(RuntimeException.class, () -> transferService.createTransfer("FR7618315100001028575571887",
-				"XXXXXXXXX", 2.00, LocalDate.now(), "Deux euros!"));
-		assertThrows(RuntimeException.class, () -> transferService.createTransfer("XXXXXXXXX",
+		assertThrows(CreateTransferException.class, () -> transferService.createTransfer("FR7618315100001028575571887",
+				"XXXXXXXXXXXXXXXXXXXXXXXXXXX", 2.00, LocalDate.now(), "Deux euros!"));
+		assertThrows(CreateTransferException.class, () -> transferService.createTransfer("XXXXXXXXXXXXXXXXXXXXXXXXXXX",
 				"FR7618315100000406690515531", 2.00, LocalDate.now(), "Deux euros!"));
-		assertThrows(RuntimeException.class, () -> transferService.createTransfer("FR7618315100001028575571887",
+		assertThrows(CreateTransferException.class, () -> transferService.createTransfer("FR7618315100001028575571887",
 				"FR7618315100000406690515531", 200000000000.00, LocalDate.now(), "Deux euros!"));
+		assertThrows(CreateTransferException.class, () -> transferService.createTransfer("FR7618315100001028575571887",
+				"FR7618315100000406690515531", 2.00, LocalDate.parse("2015-01-07"), "Deux euros!"));
 	}
 
 	@Test

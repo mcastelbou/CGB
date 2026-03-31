@@ -7,6 +7,7 @@ import cgb.transfer.entity.Account;
 import cgb.transfer.entity.Transfer;
 import cgb.transfer.exception.*;
 import cgb.transfer.exception.DeleteTransferException.FailureTransfert;
+import cgb.transfer.exception.CreateTransferException.TransferFailure;
 import cgb.transfer.repository.AccountRepository;
 import cgb.transfer.repository.TransferRepository;
 import jakarta.transaction.Transactional;
@@ -51,15 +52,19 @@ public class TransferService {
 	 */
 	@Transactional
 	public Transfer createTransfer(String sourceAccountNumber, String destinationAccountNumber, Double amount,
-			LocalDate transferDate, String description) {
+			LocalDate transferDate, String description) throws CreateTransferException {
 		Account sourceAccount = accountRepository.findById(sourceAccountNumber)
-				.orElseThrow(() -> new RuntimeException("Source account not found"));
+				.orElseThrow(() -> new CreateTransferException(TransferFailure.SOURCE_ACCOUNT_NOT_FOUND));
 		Account destinationAccount = accountRepository.findById(destinationAccountNumber)
-				.orElseThrow(() -> new RuntimeException("Destination account not found"));
+				.orElseThrow(() -> new CreateTransferException(TransferFailure.DESTINATION_ACCOUNT_NOT_FOUND));
 
 		/* Pas de découvert autorisé */
 		if (sourceAccount.getSolde().compareTo(amount) < 0) {
-			throw new RuntimeException("Insufficient funds");
+			throw new CreateTransferException(TransferFailure.INSUFFICIENT_FUNDS);
+		} else if (amount < 0) {
+			throw new CreateTransferException(TransferFailure.NEGATIVE_AMOUNT);
+		} else if (transferDate.isBefore(LocalDate.now())) {
+			throw new CreateTransferException(TransferFailure.ILLEGAL_DATE);
 		} else {
 
 			sourceAccount.setSolde(sourceAccount.getSolde() - (amount));
