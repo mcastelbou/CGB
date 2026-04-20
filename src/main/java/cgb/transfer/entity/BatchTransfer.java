@@ -20,7 +20,7 @@ import java.time.LocalDate;
 public class BatchTransfer {
 
 	/**
-	 * L'identifiant relatif du virement.
+	 * L'identifiant du virement.
 	 */
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,7 +29,6 @@ public class BatchTransfer {
 	/**
 	 * L'identifiant du lot auquel est associé le virement.
 	 */
-	@Id
 	@JsonBackReference
 	@ManyToOne(cascade = { CascadeType.PERSIST, CascadeType.MERGE })
 	@JoinColumn(name = "batch_id")
@@ -83,7 +82,7 @@ public class BatchTransfer {
 	 * 
 	 * @return L'identifiant du lot
 	 */
-	public Batch getBatchId() {
+	public Batch getBatch() {
 		return batch;
 	}
 
@@ -92,7 +91,7 @@ public class BatchTransfer {
 	 * 
 	 * @param batch L'identifiant du lot
 	 */
-	public void setBatchId(Batch batch) {
+	public void setBatch(Batch batch) {
 		this.batch = batch;
 	}
 

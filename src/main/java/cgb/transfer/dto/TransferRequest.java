@@ -26,6 +26,10 @@ public class TransferRequest {
 	 * La description que l'utilisateur à associé au transfert; peut être vide.
 	 */
 	private String description;
+	/**
+	 * L'état du virement (utilisé pour les virements par lot)
+	 */
+	private String state;
 
 	public String getSourceAccountNumber() {
 		return sourceAccountNumber;

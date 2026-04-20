@@ -2,6 +2,7 @@ package cgb.transfer.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
+import cgb.transfer.dto.TransferRequest;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -23,13 +24,14 @@ public class Batch {
 	/**
 	 * L'identifiant du lot.
 	 */
-	@Id
+	/*@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long batchNumber;
+	private Long batchNumber;*/
 
 	/**
 	 * La référence (date + numéro d'ordre) du lot.
 	 */
+	@Id
 	private String refBatch;
 
 	/**
@@ -61,23 +63,23 @@ public class Batch {
 
 	// Getters & Setters
 
-	/**
-	 * Getter de l'identifiant du lot.
-	 * 
-	 * @return L'identifiant du lot.
-	 */
-	public Long getBatchNumber() {
-		return batchNumber;
-	}
-
-	/**
-	 * Setter de l'identifiant du lot.
-	 * 
-	 * @param batchNumber Le nouvel identifiant
-	 */
-	public void setBatchNumber(Long batchNumber) {
-		this.batchNumber = batchNumber;
-	}
+//	/**
+//	 * Getter de l'identifiant du lot.
+//	 * 
+//	 * @return L'identifiant du lot.
+//	 */
+//	public Long getBatchNumber() {
+//		return batchNumber;
+//	}
+//
+//	/**
+//	 * Setter de l'identifiant du lot.
+//	 * 
+//	 * @param batchNumber Le nouvel identifiant
+//	 */
+//	public void setBatchNumber(Long batchNumber) {
+//		this.batchNumber = batchNumber;
+//	}
 
 	/**
 	 * Getter de la référence du lot.
