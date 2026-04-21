@@ -5,6 +5,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import cgb.transfer.entity.Batch;
 import cgb.transfer.entity.BatchTransfer;
 
 /**
@@ -13,5 +14,5 @@ import cgb.transfer.entity.BatchTransfer;
  */
 @Repository
 public interface BatchTransferRepository extends JpaRepository<BatchTransfer, Long> {
-	Optional<BatchTransfer> findWhereBatchIdAndDestinationAccountAndDescription(String batchId, String destAccount, String description);
+	Optional<BatchTransfer> findByBatchAndDestinationAccountAndDescription(Batch batch, String destAccount, String description);
 }

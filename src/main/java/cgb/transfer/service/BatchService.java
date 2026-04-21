@@ -37,7 +37,6 @@ public class BatchService {
 				.orElseThrow(() -> new CreateTransferException(TransferFailure.SOURCE_ACCOUNT_NOT_FOUND));
 
 		Batch batch = new Batch();
-
 		batch.setRefBatch(batchRequest.getRefBatch());
 		batch.setSourceAccount(sourceAccount.getAccountNumber());
 		batch.setDescription(batchRequest.getDescription());
@@ -110,10 +109,10 @@ public class BatchService {
 		String destinationAccountNumber = transferRequest.getDestinationAccountNumber();
 		String description = transferRequest.getDescription();
 		Double amount = transferRequest.getAmount();
-		String batchId = batch.getRefBatch();
+		//String batchId = batch.getRefBatch();
 
 		boolean transferIsSaved = batchTransferRepo
-				.findWhereBatchIdAndDestinationAccountAndDescription(batchId, destinationAccountNumber, description)
+				.findByBatchAndDestinationAccountAndDescription(batch, destinationAccountNumber, description)
 				.isPresent();
 
 		if (!transferIsSaved && amount > 0) {
