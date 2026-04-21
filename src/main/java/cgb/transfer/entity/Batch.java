@@ -194,7 +194,7 @@ public class Batch {
 	 * 
 	 * @param transfer Le virement
 	 */
-	public void addTransfer(BatchTransfer transfer) {
-		this.transferList.add(transfer);
+	public void addTransfer(BatchTransfer transferRequest) {
+		this.transferList.add(transferRequest);
 	}
 }

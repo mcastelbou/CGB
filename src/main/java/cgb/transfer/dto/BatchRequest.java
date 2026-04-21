@@ -6,7 +6,7 @@ import java.util.List;
 
 public class BatchRequest {
 
-	private Long batchNumber;
+	private String batchNumber;
 	private String refBatch;
 	private String sourceAccount;
 	private String description;
@@ -14,11 +14,11 @@ public class BatchRequest {
 	private String status;
 	private List<TransferRequest> transferList = new ArrayList<TransferRequest>();
 
-	public Long getBatchNumber() {
+	public String getBatchNumber() {
 		return batchNumber;
 	}
 
-	public void setBatchNumber(Long batchNumber) {
+	public void setBatchNumber(String batchNumber) {
 		this.batchNumber = batchNumber;
 	}
 
