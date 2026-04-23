@@ -23,13 +23,13 @@ import java.util.List;
 public class BatchService {
 
 	@Autowired
-	private static AccountRepository accountRepo;
+	private AccountRepository accountRepo;
 
 	@Autowired
-	private static BatchRepository batchRepo;
+	private BatchRepository batchRepo;
 
 	@Autowired
-	private static BatchTransferRepository batchTransferRepo;
+	private BatchTransferRepository batchTransferRepo;
 
 	@Transactional
 	public Batch createBatch(BatchRequest batchRequest) throws CreateTransferException {
@@ -47,14 +47,19 @@ public class BatchService {
 	}
 
 	@Async
-	public void executeBatch(Batch batch, List<TransferRequest> requestList) {
-		List<TransferRequest> transferList = requestList;
+	@Transactional
+	public void executeBatch(String batchRef, List<TransferRequest> transferRequestList) {
+		List<TransferRequest> transferList = transferRequestList;
+		Batch batch = batchRepo.findByRefBatch(batchRef).orElseThrow();
 
-		for (TransferRequest transferRequest : transferList) {
-			try {
-				createBatchTransfer(batch, transferRequest);
-			} catch (CreateTransferException e) {
-				// TODO log + abort
+		try {
+			for (TransferRequest transferRequest : transferList) {
+				BatchTransfer newBatchTransfer = createBatchTransfer(batch, transferRequest);
+				batch.addTransfer(newBatchTransfer);
+			}
+		} catch (/*Exception*/ CreateTransferException e) {
+			// TODO log
+			for (TransferRequest transferRequest : transferList) {
 				fallbackBatchTransfer(batch, transferRequest);
 			}
 		}
@@ -64,25 +69,19 @@ public class BatchService {
 	}
 
 	@Transactional
-	public void createBatchTransfer(Batch batch, TransferRequest transferRequest) throws CreateTransferException {
-		String destinationAccountNumber = transferRequest.getDestinationAccountNumber();
-		String description = transferRequest.getDescription();
-		Double amount = transferRequest.getAmount();
-
-		Account sourceAccount = accountRepo.findById(batch.getSourceAccount()).get();
-		Account destinationAccount = accountRepo.findById(destinationAccountNumber)
-				.orElseThrow(() -> new CreateTransferException(TransferFailure.DESTINATION_ACCOUNT_NOT_FOUND));
-
-		BatchTransfer batchTransfer = new BatchTransfer();
+	public BatchTransfer createBatchTransfer(Batch batch, TransferRequest transferRequest) throws CreateTransferException {		
+		BatchTransfer batchTransfer = transferRequest.DTOtoBatchTransfer();
 		batchTransfer.setBatch(batch);
-		batchTransfer.setDestinationAccount(destinationAccountNumber);
-		batchTransfer.setCompletionDate(LocalDate.now());
-		batchTransfer.setDescription(description);
 		batchTransfer.setStatus("waiting");
+		
+		Double amount = batchTransfer.getAmount();
+		
+		Account sourceAccount = accountRepo.findById(batch.getSourceAccount()).get();
+		Account destinationAccount = accountRepo.findById(batchTransfer.getDestinationAccount())
+				.orElseThrow(() -> new CreateTransferException(TransferFailure.DESTINATION_ACCOUNT_NOT_FOUND));
 
 		/* Pas de découvert autorisé */
 		if (sourceAccount.getSolde().compareTo(amount) < 0) {
-			batchTransfer.setStatus("delayed");
 			throw new CreateTransferException(TransferFailure.INSUFFICIENT_FUNDS);
 		} else if (amount < 0) {
 			throw new CreateTransferException(TransferFailure.NEGATIVE_AMOUNT);
@@ -95,28 +94,25 @@ public class BatchService {
 		accountRepo.save(destinationAccount);
 
 		batchTransfer.setAmount(amount);
-
-		batchTransferRepo.save(batchTransfer);
-
-		batch.addTransfer(batchTransfer);
-
-		batchRepo.save(batch);
+		batchTransfer.setCompletionDate(LocalDate.now());
+		batchTransfer.setStatus("success");
+			
+		return batchTransferRepo.save(batchTransfer);
 
 	}
 
 	@Transactional
-	public void fallbackBatchTransfer(Batch batch, TransferRequest transferRequest) {
+	public BatchTransfer fallbackBatchTransfer(Batch batch, TransferRequest transferRequest) {
 		String destinationAccountNumber = transferRequest.getDestinationAccountNumber();
 		String description = transferRequest.getDescription();
 		Double amount = transferRequest.getAmount();
-		//String batchId = batch.getRefBatch();
 
 		boolean transferIsSaved = batchTransferRepo
 				.findByBatchAndDestinationAccountAndDescription(batch, destinationAccountNumber, description)
 				.isPresent();
 
 		if (!transferIsSaved && amount > 0) {
-			BatchTransfer batchTransfer = new BatchTransfer();
+			BatchTransfer batchTransfer = transferRequest.DTOtoBatchTransfer();
 
 			batchTransfer.setBatch(batch);
 			batchTransfer.setDestinationAccount(destinationAccountNumber);
@@ -125,11 +121,8 @@ public class BatchService {
 			batchTransfer.setDescription(description);
 			batchTransfer.setStatus("postponed");
 
-			batchTransferRepo.save(batchTransfer);
-
-			batch.addTransfer(batchTransfer);
-
-			batchRepo.save(batch);
+			return batchTransferRepo.save(batchTransfer);
 		}
+		return null;
 	}
 }

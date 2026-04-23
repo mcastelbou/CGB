@@ -1,5 +1,7 @@
 package cgb.transfer.repository;
 
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -11,5 +13,5 @@ import cgb.transfer.entity.Batch;
  */
 @Repository
 public interface BatchRepository extends JpaRepository<Batch, Long> {
-
+	Optional<Batch> findByRefBatch(String refBatch);
 }

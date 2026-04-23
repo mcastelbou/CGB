@@ -2,6 +2,8 @@ package cgb.transfer.dto;
 
 import java.time.LocalDate;
 
+import cgb.transfer.entity.BatchTransfer;
+
 /**
  * La classe de DTO d'un transfert.
  */
@@ -26,6 +28,17 @@ public class TransferRequest {
 	 * La description que l'utilisateur à associé au transfert; peut être vide.
 	 */
 	private String description;
+
+	public TransferRequest() {
+		super();
+	}
+
+	public TransferRequest(String destinationAccountNumber, Double amount, String description) {
+		super();
+		this.destinationAccountNumber = destinationAccountNumber;
+		this.amount = amount;
+		this.description = description;
+	}
 
 	public String getSourceAccountNumber() {
 		return sourceAccountNumber;
@@ -69,6 +82,14 @@ public class TransferRequest {
 
 	public boolean hasNoDate() {
 		return this.transferDate == null;
+	}
+	
+	public BatchTransfer DTOtoBatchTransfer() {
+		return new BatchTransfer(destinationAccountNumber, amount, description);
+	}
+	
+	static TransferRequest BatchTransferToDTO(BatchTransfer Bt) {
+		return new TransferRequest(Bt.getDestinationAccount(), Bt.getAmount(), Bt.getDescription());
 	}
 
 }

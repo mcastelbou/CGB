@@ -59,6 +59,18 @@ public class BatchTransfer {
 	 */
 	private String status;
 
+	
+	public BatchTransfer() {
+		super();
+	}
+
+	public BatchTransfer(String destAccount, Double amount, String description) {
+		super();
+		this.destinationAccount = destAccount;
+		this.amount = amount;
+		this.description = description;
+	}
+	
 	/**
 	 * Getter de l'identifiant relatif du virement.
 	 * 

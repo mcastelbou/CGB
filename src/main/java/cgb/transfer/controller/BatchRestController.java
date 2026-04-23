@@ -1,6 +1,6 @@
 package cgb.transfer.controller;
 
-import java.time.LocalDate;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -12,12 +12,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import cgb.transfer.dto.BatchRequest;
+import cgb.transfer.dto.TransferRequest;
 import cgb.transfer.entity.Batch;
 import cgb.transfer.exception.CreateTransferException;
 import cgb.transfer.service.BatchService;
 
 @RestController
-@RequestMapping("/api/lots")
+@RequestMapping("/api/batches")
 public class BatchRestController {
 	
 	@Autowired
@@ -27,11 +28,11 @@ public class BatchRestController {
 	public ResponseEntity<?> startAsyncTask(@RequestBody BatchRequest batchRequest) {
 		try {
 			Batch batch = batchService.createBatch(batchRequest);
-			batchService.executeBatch(batch, batchRequest.getTransferList());
+			List<TransferRequest> transferList = batchRequest.getTransfers();
 			
-			batchRequest.setBatchNumber(batch.getRefBatch());
+			batchService.executeBatch(batch.getRefBatch(), transferList);
+			
 			batchRequest.setStartDate(batch.getStartDate());
-			batchRequest.setTransferList(null);
 			batchRequest.setStatus("received");
 			
 			return ResponseEntity.ok(batchRequest);

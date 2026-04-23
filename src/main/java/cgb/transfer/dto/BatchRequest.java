@@ -6,21 +6,21 @@ import java.util.List;
 
 public class BatchRequest {
 
-	private String batchNumber;
+//	private String batchNumber;
 	private String refBatch;
 	private String sourceAccount;
 	private String description;
 	private LocalDate startDate;
 	private String status;
-	private List<TransferRequest> transferList = new ArrayList<TransferRequest>();
+	private ArrayList<TransferRequest> transfers;
 
-	public String getBatchNumber() {
-		return batchNumber;
-	}
-
-	public void setBatchNumber(String batchNumber) {
-		this.batchNumber = batchNumber;
-	}
+//	public String getBatchNumber() {
+//		return batchNumber;
+//	}
+//
+//	public void setBatchNumber(String batchNumber) {
+//		this.batchNumber = batchNumber;
+//	}
 
 	public String getRefBatch() {
 		return refBatch;
@@ -62,12 +62,12 @@ public class BatchRequest {
 		this.status = status;
 	}
 
-	public List<TransferRequest> getTransferList() {
-		return transferList;
+	public List<TransferRequest> getTransfers() {
+		return transfers;
 	}
 
-	public void setTransferList(List<TransferRequest> transferList) {
-		this.transferList = transferList;
+	public void setTransfers(ArrayList<TransferRequest> transferList) {
+		this.transfers = transferList;
 	}
 
 }
