@@ -19,13 +19,6 @@ import java.util.List;
 public class Batch {
 
 	/**
-	 * L'identifiant du lot.
-	 */
-	/*@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long batchNumber;*/
-
-	/**
 	 * La référence (date + numéro d'ordre) du lot.
 	 */
 	@Id
@@ -59,24 +52,6 @@ public class Batch {
 	private List<BatchTransfer> transferList = new ArrayList<BatchTransfer>();
 
 	// Getters & Setters
-
-//	/**
-//	 * Getter de l'identifiant du lot.
-//	 * 
-//	 * @return L'identifiant du lot.
-//	 */
-//	public Long getBatchNumber() {
-//		return batchNumber;
-//	}
-//
-//	/**
-//	 * Setter de l'identifiant du lot.
-//	 * 
-//	 * @param batchNumber Le nouvel identifiant
-//	 */
-//	public void setBatchNumber(Long batchNumber) {
-//		this.batchNumber = batchNumber;
-//	}
 
 	/**
 	 * Getter de la référence du lot.

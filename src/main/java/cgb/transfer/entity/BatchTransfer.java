@@ -59,7 +59,6 @@ public class BatchTransfer {
 	 */
 	private String status;
 
-	
 	public BatchTransfer() {
 		super();
 	}
@@ -70,7 +69,7 @@ public class BatchTransfer {
 		this.amount = amount;
 		this.description = description;
 	}
-	
+
 	/**
 	 * Getter de l'identifiant relatif du virement.
 	 * 
