@@ -12,7 +12,7 @@ public class CGBLogger {
 	private FileWriter fileWriter;
 	private PrintWriter printWriter;
 
-	private static final String LOGS = "../../logs/logs.txt";
+	private static final String LOGS = "logs/logs.txt";
 
 	private CGBLogger() {
 	}
@@ -37,7 +37,7 @@ public class CGBLogger {
 	}
 
 	private String format(String content) {
-		String format = "%s | %s\n";
+		String format = "%s | %s.";
 		String response = String.format(format, LocalDateTime.now(), content);
 		return response;
 	}

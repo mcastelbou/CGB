@@ -41,7 +41,7 @@ public class BatchService {
 				.orElseThrow(() -> new CreateTransferException(TransferFailure.SOURCE_ACCOUNT_NOT_FOUND));
 
 		if (batchRequest.getRefBatch() == null) {
-			batchRequest.setRefBatch(LocalDate.now() + "-" + (batchRepo.countWhereStartDate(LocalDate.now()) + 1));
+			batchRequest.setRefBatch(LocalDate.now() + "-" + (batchRepo.countByStartDate(LocalDate.now()) + 1));
 		}
 
 		Batch batch = new Batch();
@@ -59,15 +59,22 @@ public class BatchService {
 	@Async
 	@Transactional
 	public void executeBatch(String batchRef, List<BatchTransferRequest> transferRequestList) {
-		List<BatchTransferRequest> transferList = transferRequestList;
+		log.write("Beginning execution for batch n°" + batchRef);
 		Batch batch = batchRepo.findByRefBatch(batchRef).orElseThrow();
 
-		for (BatchTransferRequest transferRequest : transferList) {
+		for (BatchTransferRequest transferRequest : transferRequestList) {
 			BatchTransfer newBatchTransfer = createBatchTransfer(batch, transferRequest);
 			batch.addTransfer(newBatchTransfer);
 		}
 
 		batch.setStatus("closed");
+
+		String[] statusFailed = { "failure", "delayed", "canceled" };
+		String[] statusSuccessful = { "success" };
+		int failed = batchTransferRepo.countByBatchAndStatusIn(batch, statusFailed);
+		int successful = batchTransferRepo.countByBatchAndStatusIn(batch, statusSuccessful);
+		log.write("End of execution for batch n°" + batchRef + "  Successful transfers : " + successful
+				+ ", Failed transfers : " + failed);
 		batchRepo.save(batch);
 	}
 
@@ -80,17 +87,17 @@ public class BatchService {
 
 		if (!destAccount.isPresent()) {
 			// Le compte destinataire n'existe pas.
-			BatchTransfer invalidBatch = fallbackBatchTransfer(batch, transferRequest);
+			BatchTransfer invalidBatch = fallbackBatchTransfer(batch, transferRequest, "failure");
 			log.write("Error during transfer n°" + invalidBatch.getId() + " : DESTINATION_ACCOUNT_NOT_FOUND");
 			return invalidBatch;
 		} else if (sourceAccount.getSolde().compareTo(amount) < 0) {
 			// Les fonds du compte source sont insuffisants.
-			BatchTransfer invalidBatch = fallbackBatchTransfer(batch, transferRequest);
+			BatchTransfer invalidBatch = fallbackBatchTransfer(batch, transferRequest, "delayed");
 			log.write("Error during transfer n°" + invalidBatch.getId() + " : INSUFFICIENT_FUNDS");
 			return invalidBatch;
 		} else if (amount < 0) {
 			// Le montant du virement est négatif.
-			BatchTransfer invalidBatch = fallbackBatchTransfer(batch, transferRequest);
+			BatchTransfer invalidBatch = fallbackBatchTransfer(batch, transferRequest, "canceled");
 			log.write("Error during transfer n°" + invalidBatch.getId() + " : NEGATIVE_AMOUNT");
 			return invalidBatch;
 		}
@@ -114,12 +121,12 @@ public class BatchService {
 	}
 
 	@Transactional
-	public BatchTransfer fallbackBatchTransfer(Batch batch, BatchTransferRequest transferRequest) {
+	public BatchTransfer fallbackBatchTransfer(Batch batch, BatchTransferRequest transferRequest, String status) {
 		BatchTransfer batchTransfer = transferRequest.DTOtoBatchTransfer();
 
 		batchTransfer.setBatch(batch);
 		batchTransfer.setCompletionDate(null);
-		batchTransfer.setStatus("cancelled");
+		batchTransfer.setStatus(status);
 
 		return batchTransferRepo.save(batchTransfer);
 	}

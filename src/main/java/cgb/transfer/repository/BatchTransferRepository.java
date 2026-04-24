@@ -14,5 +14,8 @@ import cgb.transfer.entity.BatchTransfer;
  */
 @Repository
 public interface BatchTransferRepository extends JpaRepository<BatchTransfer, Long> {
-	Optional<BatchTransfer> findByBatchAndDestinationAccountAndDescription(Batch batch, String destAccount, String description);
+	Optional<BatchTransfer> findByBatchAndDestinationAccountAndDescription(Batch batch, String destAccount,
+			String description);
+
+	int countByBatchAndStatusIn(Batch batch, String[] status);
 }

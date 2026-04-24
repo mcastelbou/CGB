@@ -16,5 +16,5 @@ import cgb.transfer.entity.Batch;
 public interface BatchRepository extends JpaRepository<Batch, Long> {
 	Optional<Batch> findByRefBatch(String refBatch);
 
-	int countWhereStartDate(LocalDate date);
+	int countByStartDate(LocalDate date);
 }
