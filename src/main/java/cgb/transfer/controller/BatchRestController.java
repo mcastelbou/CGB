@@ -17,13 +17,26 @@ import cgb.transfer.entity.Batch;
 import cgb.transfer.exception.CreateTransferException;
 import cgb.transfer.service.BatchService;
 
+/**
+ * Classe de réception des requêtes HTTP sur la route de gestion des lots de
+ * virements.
+ */
 @RestController
 @RequestMapping("/api/batches")
 public class BatchRestController {
 
+	/**
+	 * Le lien vers le service de gerstion des virements par lots.
+	 */
 	@Autowired
 	private BatchService batchService;
 
+	/**
+	 * Méthode POST de gestion des virements par lots.
+	 * 
+	 * @param batchRequest Le corps de la requête HTTP.
+	 * @return Une attestation de bonne réception du lot à gérer, sinon une erreur.
+	 */
 	@PostMapping
 	public ResponseEntity<?> startAsyncTask(@RequestBody BatchRequest batchRequest) {
 		try {
@@ -37,6 +50,7 @@ public class BatchRestController {
 
 			return ResponseEntity.ok(batchRequest);
 		} catch (CreateTransferException e) {
+			// Uniquement renvoyée lorsque le lot (hormis la liste de virements) en lui même contient des erreurs.
 			TransferResponse errorResponse = new TransferResponse("FAILURE", e.getMessage());
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
 		}

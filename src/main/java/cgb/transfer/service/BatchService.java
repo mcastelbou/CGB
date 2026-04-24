@@ -21,26 +21,51 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Classe du service de gestion des lots de virements.
+ */
 @Service
 public class BatchService {
 
+	/**
+	 * Le lien vers le repository des comptes bancaires.
+	 */
 	@Autowired
 	private AccountRepository accountRepo;
 
+	/**
+	 * Le lien vers le repository des lots.
+	 */
 	@Autowired
 	private BatchRepository batchRepo;
 
+	/**
+	 * Le lien vers le repository des virements soumis par lot.
+	 */
 	@Autowired
 	private BatchTransferRepository batchTransferRepo;
 
+	/**
+	 * L'instance de logueur.
+	 */
 	private CGBLogger log = CGBLogger.getInstance();
 
+	/**
+	 * Méthode de création et d'enregistrement d'un lot.
+	 * 
+	 * @param batchRequest Un DTO contenant les infos à enregistrer.
+	 * @return L'objet BatchTransfer tel qu'enregistré en BDD.
+	 * @throws CreateTransferException Erreur renvoyée lorsque le compte source
+	 *                                 n'existe pas.
+	 */
 	@Transactional
 	public Batch createBatch(BatchRequest batchRequest) throws CreateTransferException {
 		Account sourceAccount = accountRepo.findById(batchRequest.getSourceAccount())
 				.orElseThrow(() -> new CreateTransferException(TransferFailure.SOURCE_ACCOUNT_NOT_FOUND));
 
 		if (batchRequest.getRefBatch() == null) {
+			// Si elle n'est pas renseignée, calcul de la référence du lot tel que ('Date du
+			// jour-numéro d'ordre').
 			batchRequest.setRefBatch(LocalDate.now() + "-" + (batchRepo.countByStartDate(LocalDate.now()) + 1));
 		}
 
@@ -56,6 +81,13 @@ public class BatchService {
 		return batchRepo.save(batch);
 	}
 
+	/**
+	 * Méthode asynchrone de gestion de l'ajout de chaque virement au lot
+	 * correspondant.
+	 * 
+	 * @param batchRef            La référence du lot.
+	 * @param transferRequestList La liste des virements à enregistrer.
+	 */
 	@Async
 	@Transactional
 	public void executeBatch(String batchRef, List<BatchTransferRequest> transferRequestList) {
@@ -78,6 +110,13 @@ public class BatchService {
 		batchRepo.save(batch);
 	}
 
+	/**
+	 * Méthode de création d'un virement par lot.
+	 * 
+	 * @param batch           Le lot auquel est lié le virement.
+	 * @param transferRequest Un DTO représentant le virement à enregistrer.
+	 * @return L'objet BatchTransfer tel qu'enregistré en BDD.
+	 */
 	@Transactional
 	public BatchTransfer createBatchTransfer(Batch batch, BatchTransferRequest transferRequest) {
 		Double amount = transferRequest.getAmount();
@@ -120,6 +159,16 @@ public class BatchService {
 
 	}
 
+	/**
+	 * Méthode de secours pour l'enregistrement d'un virement par lot qui contient
+	 * des erreurs.
+	 * 
+	 * @param batch           Le lot auquel est lié le virement.
+	 * @param transferRequest Un DTO représentant le virement à enregistrer.
+	 * @param status          Le status sous lequel doit être enregistré le virement
+	 *                        afin de déterminer la cause de l'échec.
+	 * @return L'objet BatchTransfer tel qu'enregistré en BDD.
+	 */
 	@Transactional
 	public BatchTransfer fallbackBatchTransfer(Batch batch, BatchTransferRequest transferRequest, String status) {
 		BatchTransfer batchTransfer = transferRequest.DTOtoBatchTransfer();

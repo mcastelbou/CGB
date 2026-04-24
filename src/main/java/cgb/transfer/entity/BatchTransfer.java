@@ -2,6 +2,7 @@ package cgb.transfer.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
+import cgb.transfer.dto.BatchTransferRequest;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -50,7 +51,7 @@ public class BatchTransfer {
 	private String description;
 
 	/**
-	 * La date à laquelle a été complété le virement.
+	 * La date à laquelle le virement à été traité.
 	 */
 	private LocalDate completionDate;
 
@@ -59,30 +60,37 @@ public class BatchTransfer {
 	 */
 	private String status;
 
+	/**
+	 * Constructeur par défaut d'un virement par lot.
+	 */
 	public BatchTransfer() {
 		super();
 	}
 
-	public BatchTransfer(String destAccount, Double amount, String description) {
+	/**
+	 * Constructeur d'un virement par lot depuis un DTO.
+	 * @param btr  Le DTO à transformer en objet métier.
+	 */
+	public BatchTransfer(BatchTransferRequest btr) {
 		super();
-		this.destinationAccount = destAccount;
-		this.amount = amount;
-		this.description = description;
+		this.destinationAccount = btr.getDestinationAccount();
+		this.amount = btr.getAmount();
+		this.description = btr.getDescription();
 	}
 
 	/**
-	 * Getter de l'identifiant relatif du virement.
+	 * Getter de l'identifiant du virement.
 	 * 
-	 * @return L'identifiant du virement
+	 * @return  L'identifiant du virement
 	 */
 	public Long getId() {
 		return id;
 	}
 
 	/**
-	 * Setter de l'identifiant relatif du virement.
+	 * Setter de l'identifiant du virement.
 	 * 
-	 * @param id La partie relative de l'identifiant du virement
+	 * @param id  L'identifiant du virement
 	 */
 	public void setId(Long id) {
 		this.id = id;
@@ -91,7 +99,7 @@ public class BatchTransfer {
 	/**
 	 * Getter de l'identifiant du lot auquel est associé le virement
 	 * 
-	 * @return L'identifiant du lot
+	 * @return  L'identifiant du lot
 	 */
 	public Batch getBatch() {
 		return batch;
@@ -100,7 +108,7 @@ public class BatchTransfer {
 	/**
 	 * Setter de l'identifiant du lot auquel doit être associé le virement.
 	 * 
-	 * @param batch L'identifiant du lot
+	 * @param batch  L'identifiant du lot
 	 */
 	public void setBatch(Batch batch) {
 		this.batch = batch;
@@ -109,7 +117,7 @@ public class BatchTransfer {
 	/**
 	 * Getter du compte de destination du virement.
 	 * 
-	 * @return L'IBAN du compte de destination
+	 * @return  L'IBAN du compte de destination
 	 */
 	public String getDestinationAccount() {
 		return destinationAccount;
@@ -118,7 +126,7 @@ public class BatchTransfer {
 	/**
 	 * Setter du compte de destination du virement
 	 * 
-	 * @param destinationAccount L'IBAN du compte de destination
+	 * @param destinationAccount  L'IBAN du compte de destination
 	 */
 	public void setDestinationAccount(String destinationAccount) {
 		this.destinationAccount = destinationAccount;
@@ -127,7 +135,7 @@ public class BatchTransfer {
 	/**
 	 * Getter du montant du virement.
 	 * 
-	 * @return Le montant du virement
+	 * @return  Le montant du virement
 	 */
 	public Double getAmount() {
 		return amount;
@@ -136,7 +144,7 @@ public class BatchTransfer {
 	/**
 	 * Setter du montant du virement.
 	 * 
-	 * @param amount Le montant du virement
+	 * @param amount  Le montant du virement
 	 */
 	public void setAmount(Double amount) {
 		this.amount = amount;
@@ -145,7 +153,7 @@ public class BatchTransfer {
 	/**
 	 * Getter de la description du virement.
 	 * 
-	 * @return La description du virement
+	 * @return  La description du virement
 	 */
 	public String getDescription() {
 		return description;
@@ -154,25 +162,25 @@ public class BatchTransfer {
 	/**
 	 * Setter de la description du virement.
 	 * 
-	 * @param description La nouvelle description du virement
+	 * @param description  La nouvelle description du virement
 	 */
 	public void setDescription(String description) {
 		this.description = description;
 	}
 
 	/**
-	 * Getter de la date à laquelle le virement a été complété.
+	 * Getter de la date à laquelle le virement a été traité.
 	 * 
-	 * @return La date de completion du virement
+	 * @return  La date de completion du virement
 	 */
 	public LocalDate getCompletionDate() {
 		return completionDate;
 	}
 
 	/**
-	 * Setter de la date à laquelle le virement a été complété.
+	 * Setter de la date à laquelle le virement a été traité.
 	 * 
-	 * @param completionDate La date de completion du virement
+	 * @param completionDate  La date de completion du virement
 	 */
 	public void setCompletionDate(LocalDate completionDate) {
 		this.completionDate = completionDate;
@@ -189,7 +197,7 @@ public class BatchTransfer {
 	/**
 	 * Getter de l'état du virement.
 	 * 
-	 * @return L'état du virement
+	 * @return  L'état du virement
 	 */
 	public String getStatus() {
 		return status;
@@ -198,7 +206,7 @@ public class BatchTransfer {
 	/**
 	 * Setter de l'état du virement.
 	 * 
-	 * @param status Le nouvel état du virement
+	 * @param status  Le nouvel état du virement
 	 */
 	public void setStatus(String status) {
 		this.status = status;
