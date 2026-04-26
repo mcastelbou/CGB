@@ -152,7 +152,6 @@ public class BatchService {
 		batchTransfer.setBatch(batch);
 		batchTransfer.setAmount(amount);
 		batchTransfer.setCompletionDate(LocalDate.now());
-		batchTransfer.setStatus("waiting");
 		batchTransfer.setStatus("success");
 
 		return batchTransferRepo.save(batchTransfer);

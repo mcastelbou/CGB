@@ -110,7 +110,7 @@ public class BatchTransferRequest {
 	 * @param bt L'objet métier de type BatchTransfer.
 	 * @return Un DTO représentant l'objet métier initial.
 	 */
-	static BatchTransferRequest BatchTransferToDTO(BatchTransfer bt) {
+	public static BatchTransferRequest BatchTransferToDTO(BatchTransfer bt) {
 		return new BatchTransferRequest(bt);
 	}
 
