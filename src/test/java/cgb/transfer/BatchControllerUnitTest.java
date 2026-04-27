@@ -66,7 +66,7 @@ public class BatchControllerUnitTest {
 
 	/*@Test
 	void shouldReturnBatch_Failure() throws Exception {
-		mockBatchRequest.setSourceAccount(null);
+		mockBatchRequest.setSourceAccount("XXXXXXXXXXXXXXXXXXXXXXXXXXX");
 
 		mockMvc.perform(
 				post("/api/batches").contentType(MediaType.APPLICATION_JSON).content(asJsonString(mockBatchRequest)))
