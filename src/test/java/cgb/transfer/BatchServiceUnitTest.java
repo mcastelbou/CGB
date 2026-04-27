@@ -1,12 +1,9 @@
 package cgb.transfer;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -33,7 +30,7 @@ public class BatchServiceUnitTest {
 
 	private static Account sourceAccount;
 	private static Batch mockBatch;
-	
+
 	private static Account destinationAccount;
 	private static BatchTransfer mockBatchTransfer;
 
@@ -42,7 +39,7 @@ public class BatchServiceUnitTest {
 
 	@Mock
 	private BatchRepository batchRepo;
-	
+
 	@Mock
 	private BatchTransferRepository batchTransferRepo;
 
@@ -61,7 +58,7 @@ public class BatchServiceUnitTest {
 		mockBatch.setStartDate(LocalDate.now());
 		mockBatch.setDescription("Lot standard avec 1 virement.");
 		mockBatch.setStatus("received");
-		
+
 		destinationAccount = new Account();
 		destinationAccount.setAccountNumber("FR7618315100000406690515531");
 		destinationAccount.setSolde(500.00);
@@ -71,48 +68,72 @@ public class BatchServiceUnitTest {
 		mockBatchTransfer.setBatch(mockBatch);
 		mockBatchTransfer.setDescription("Deux euros !");
 		mockBatchTransfer.setDestinationAccount(destinationAccount.getAccountNumber());
-		
+
 		mockBatch.addTransfer(mockBatchTransfer);
 	}
-	
+
 	@Test
 	void shouldReturnBatch_Success() throws CreateTransferException {
 		when(accountRepo.findById("FR7618315100001028575571887")).thenReturn(Optional.of(sourceAccount));
 		when(batchRepo.save(Mockito.any(Batch.class))).thenReturn(mockBatch);
-		
+
 		BatchRequest br = new BatchRequest();
 		br.setDescription("Lot standard avec 1 virement.");
 		br.setSourceAccount("FR7618315100001028575571887");
-		
+
 		Batch batch = batchService.createBatch(br);
-		
+
 		assertTrue(batch.getRefBatch().equals(LocalDate.now() + "-1"));
 		assertTrue(batch.getDescription().equals(br.getDescription()));
 		assertTrue(batch.getStatus().equals("received"));
 		assertTrue(batch.getStartDate().equals(LocalDate.now()));
 		assertTrue(batch.getDescription().equals(br.getDescription()));
 	}
-	
+
 	@Test
 	void shouldReturnBatch_Failure() {
 		BatchRequest br = new BatchRequest();
 		br.setDescription("Lot standard avec 1 virement.");
 		br.setSourceAccount("FR7618315100001028575571887");
-		
+
 		assertThrows(CreateTransferException.class, () -> batchService.createBatch(br));
 	}
-	
+
 	@Test
 	void shouldReturnBatchTransfer_Success() {
-		when(accountRepo.findById("FR7618315100000406690515531")).thenReturn(Optional.of(destinationAccount));
+		when(accountRepo.findById("FR7618315100001028575571887")).thenReturn(Optional.of(destinationAccount));
 		when(batchTransferRepo.save(Mockito.any(BatchTransfer.class))).thenReturn(mockBatchTransfer);
-		
+
 		BatchTransferRequest btr = BatchTransferRequest.BatchTransferToDTO(mockBatchTransfer);
-		
+
 		BatchTransfer bt = batchService.createBatchTransfer(mockBatch, btr);
 		assertTrue(bt.getAmount().equals(bt.getAmount()));
 		assertTrue(bt.getDestinationAccount().equals(bt.getDestinationAccount()));
 		assertTrue(bt.getDescription().equals(bt.getDescription()));
 		assertTrue(bt.getBatch().equals(mockBatch));
 	}
+
+	/*@Test
+	void shouldReturnBatchTransfer_Failure() {
+		when(accountRepo.findById("FR7618315100001028575571887")).thenReturn(Optional.of(destinationAccount));
+		when(batchTransferRepo.save(Mockito.any(BatchTransfer.class))).thenReturn(mockBatchTransfer);
+
+		mockBatchTransfer.setDestinationAccount(null);
+
+		BatchTransferRequest btr = BatchTransferRequest.BatchTransferToDTO(mockBatchTransfer);
+
+		BatchTransfer bt = batchService.createBatchTransfer(mockBatch, btr);
+		assertTrue(bt.getStatus().equals("failure"));
+
+		btr.setDestinationAccount("FR7618315100001028575571887");
+		btr.setAmount(-2.00);
+
+		bt = batchService.createBatchTransfer(mockBatch, btr);
+		assertTrue(bt.getStatus().equals("canceled"));
+
+		btr.setAmount(2000000.00);
+
+		bt = batchService.createBatchTransfer(mockBatch, btr);
+		assertTrue(bt.getStatus().equals("delayed"));
+	}*/
 }
