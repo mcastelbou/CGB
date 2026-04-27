@@ -70,5 +70,5 @@ public class TransferRequest {
 	public boolean hasNoDate() {
 		return this.transferDate == null;
 	}
-
+	
 }

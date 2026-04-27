@@ -36,7 +36,7 @@ public class TransferRestController {
 	 * 
 	 * @param transferRequest L'objet JSON envoyé dans le corps de la requête POST
 	 * @return L'objet JSON correspondant au transfer s'il est valide. Une réponse
-	 *         'BAD_REQUEST' si une RuntimeException est rencontrée.
+	 *         'BAD_REQUEST' si une CreateTransferException est rencontrée.
 	 */
 	public ResponseEntity<?> createTransfer(@RequestBody TransferRequest transferRequest) {
 		// public ResponseEntity<Transfer> createTransfer(@RequestBody TransferRequest

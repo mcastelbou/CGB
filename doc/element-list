@@ -1,4 +1,5 @@
 cgb.transfer
+cgb.transfer.config
 cgb.transfer.controller
 cgb.transfer.dto
 cgb.transfer.entity
