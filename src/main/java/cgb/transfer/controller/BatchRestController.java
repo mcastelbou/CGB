@@ -1,19 +1,23 @@
 package cgb.transfer.controller;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 //import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import cgb.transfer.dto.BatchRequest;
 import cgb.transfer.dto.BatchTransferRequest;
 import cgb.transfer.entity.Batch;
+import cgb.transfer.exception.BatchException;
 import cgb.transfer.exception.CreateTransferException;
 import cgb.transfer.service.BatchService;
 
@@ -51,6 +55,17 @@ public class BatchRestController {
 			return ResponseEntity.ok(batchRequest);
 		} catch (CreateTransferException e) {
 			// Uniquement renvoyée lorsque le lot (hormis la liste de virements) en lui même contient des erreurs.
+			TransferResponse errorResponse = new TransferResponse("FAILURE", e.getMessage());
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+		}
+	}
+	
+	@GetMapping("/{batchId}")
+	public ResponseEntity<?> getBatchReport(@RequestParam String batchId) {
+		try {
+			Batch batch = batchService.findBatch(batchId);
+			return ResponseEntity.ok(batch);
+		} catch (BatchException e) {
 			TransferResponse errorResponse = new TransferResponse("FAILURE", e.getMessage());
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
 		}

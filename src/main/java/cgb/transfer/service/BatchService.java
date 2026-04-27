@@ -11,6 +11,8 @@ import cgb.transfer.entity.Account;
 import cgb.transfer.entity.Batch;
 import cgb.transfer.entity.BatchTransfer;
 import cgb.transfer.exception.CreateTransferException;
+import cgb.transfer.exception.BatchException;
+import cgb.transfer.exception.BatchException.BatchFailure;
 import cgb.transfer.exception.CreateTransferException.TransferFailure;
 import cgb.transfer.repository.AccountRepository;
 import cgb.transfer.repository.BatchRepository;
@@ -177,5 +179,16 @@ public class BatchService {
 		batchTransfer.setStatus(status);
 
 		return batchTransferRepo.save(batchTransfer);
+	}
+
+	/**
+	 * Méthode de récupération d'un lot.
+	 * 
+	 * @param refLot La référence du lot.
+	 * @return Le lot et tous les virements qui lui sont associés.
+	 * @throws BatchException Eurreur renvoyée si le lot n'existe pas dans la BDD.
+	 */
+	public Batch findBatch(String refLot) throws BatchException {
+		return batchRepo.findByRefBatch(refLot).orElseThrow(() -> new BatchException(BatchFailure.BATCH_NOT_FOUND));
 	}
 }
