@@ -55,12 +55,20 @@ public class BatchRestController {
 
 			return ResponseEntity.ok(batchRequest);
 		} catch (CreateTransferException e) {
-			// Uniquement renvoyée lorsque le lot (hormis la liste de virements) en lui même contient des erreurs.
+			// Uniquement renvoyée lorsque le lot (hormis la liste de virements) en lui même
+			// contient des erreurs.
 			TransferResponse errorResponse = new TransferResponse("FAILURE", e.getMessage());
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
 		}
 	}
-	
+
+	/**
+	 * Méthode GET de récupération d'un rapport de lot de virement.
+	 * 
+	 * @param refBatch La référence du lot dont il faut générer le rapport
+	 *                 d'execution.
+	 * @return Le rapport du lot.
+	 */
 	@GetMapping("/{refBatch}")
 	public ResponseEntity<?> getBatchReport(@PathVariable String refBatch) {
 		try {
@@ -71,7 +79,14 @@ public class BatchRestController {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
 		}
 	}
-	
+
+	/**
+	 * Méthode GET de récupération des virements par lots qui ont rencontré des
+	 * erreurs pour un lot donné.
+	 * 
+	 * @param batchRef La référence du lot.
+	 * @return La liste des virements en échec.
+	 */
 	@GetMapping("/transfers/failed/refLot:{batchRef}")
 	public ResponseEntity<?> getFailedTransfersWithBatch(@PathVariable String batchRef) {
 		try {
@@ -82,15 +97,31 @@ public class BatchRestController {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
 		}
 	}
-	
+
+	/**
+	 * Méthode GET de récupération des virements par lots qui ont rencontré des
+	 * erreurs pour un compte destinataire donné.
+	 * 
+	 * @param destAccount L'IBAN du compte destinataire.
+	 * @return La liste des virements en échec.
+	 */
 	@GetMapping("/transfers/failed/destAccount:{destAccount}")
 	public ResponseEntity<?> getFailedTransfersWithAccount(@PathVariable String destAccount) {
 		List<BatchTransfer> list = batchService.findFailedTransfersWithDestAccount(destAccount);
 		return ResponseEntity.ok(list);
 	}
-	
+
+	/**
+	 * Méthode GET de récupération des virements par lots qui ont rencontré des
+	 * erreurs sur un intervalle donné.
+	 * 
+	 * @param lowLimit  La limite basse de l'intervalle.
+	 * @param highLimit La limite haute de l'intervalle.
+	 * @return La liste des virements en échec.
+	 */
 	@GetMapping("/transfers/failed/byDate")
-	public ResponseEntity<?> getFailedTransfersWithDate(@RequestParam LocalDate lowLimit, @RequestParam LocalDate highLimit) {
+	public ResponseEntity<?> getFailedTransfersWithDate(@RequestParam LocalDate lowLimit,
+			@RequestParam LocalDate highLimit) {
 		List<BatchTransfer> list = batchService.findFailedTransfersWithDate(lowLimit, highLimit);
 		return ResponseEntity.ok(list);
 	}

@@ -46,7 +46,10 @@ public class BatchService {
 	 */
 	@Autowired
 	private BatchTransferRepository batchTransferRepo;
-	
+
+	/**
+	 * Lien vers le service de mailing.
+	 */
 	@Autowired
 	private MailService mailing;
 
@@ -112,7 +115,8 @@ public class BatchService {
 		int successful = batchTransferRepo.countByBatchAndStatusIn(batch, statusSuccessful);
 		log.write("End of execution for batch n°" + batchRef + "  Successful transfers : " + successful
 				+ ", Failed transfers : " + failed);
-		mailing.sendBatchReport("fake@mail.com"/* UserCGB.getEmail() */, batchRef, batch.getStartDate(), successful, failed);
+		mailing.sendBatchReport("fake@mail.com"/* UserCGB.getEmail() */, batchRef, batch.getStartDate(), successful,
+				failed);
 		batchRepo.save(batch);
 	}
 
@@ -195,16 +199,42 @@ public class BatchService {
 	public Batch findBatch(String refBatch) throws BatchException {
 		return batchRepo.findByRefBatch(refBatch).orElseThrow(() -> new BatchException(BatchFailure.BATCH_NOT_FOUND));
 	}
-	
+
+	/**
+	 * Méthode de récupération des virements par lots qui ont rencontré des erreurs
+	 * par la référence du lot.
+	 * 
+	 * @param batchRef La référence du lot.
+	 * @return La liste des virements en échec du lot, peut être vide.
+	 * @throws BatchException Une erreur est levée si le lot fournit n'existe pas.
+	 */
 	public List<BatchTransfer> findFailedTransfersWithBatch(String batchRef) throws BatchException {
-		Batch batch = batchRepo.findByRefBatch(batchRef).orElseThrow(() -> new BatchException(BatchFailure.BATCH_NOT_FOUND));
+		Batch batch = batchRepo.findByRefBatch(batchRef)
+				.orElseThrow(() -> new BatchException(BatchFailure.BATCH_NOT_FOUND));
 		return batchTransferRepo.findByBatchAndStatusNot(batch, "success");
 	}
-	
+
+	/**
+	 * Méthode de récupération des virements par lots qui ont rencontré des erreurs
+	 * sur un intervalle de temps donné.
+	 * 
+	 * @param startDateInterval La date de début de l'intervalle.
+	 * @param endDateInterval   La date de fin de l'intervalle
+	 * @return La liste des virements en échec sur l'intervalle donné, peut être
+	 *         vide.
+	 */
 	public List<BatchTransfer> findFailedTransfersWithDate(LocalDate startDateInterval, LocalDate endDateInterval) {
 		return batchTransferRepo.findByCompletionDateBetweenAndStatusNot(startDateInterval, endDateInterval, "success");
 	}
-	
+
+	/**
+	 * Méthode de récupération des virements par lots vers le compte destinataire
+	 * donné qui ont rencontré des erreurs.
+	 * 
+	 * @param accountNumber L'IBAN du compte destinataire.
+	 * @return La liste des virements vers le compte courant donné qui sont en
+	 *         échec, peut être vide.
+	 */
 	public List<BatchTransfer> findFailedTransfersWithDestAccount(String accountNumber) {
 		return batchTransferRepo.findByDestinationAccountAndStatusNot(accountNumber, "success");
 	}
