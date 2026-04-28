@@ -1,13 +1,13 @@
 package cgb.transfer.controller;
 
+import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-//import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import cgb.transfer.dto.BatchRequest;
 import cgb.transfer.dto.BatchTransferRequest;
 import cgb.transfer.entity.Batch;
+import cgb.transfer.entity.BatchTransfer;
 import cgb.transfer.exception.BatchException;
 import cgb.transfer.exception.CreateTransferException;
 import cgb.transfer.service.BatchService;
@@ -60,14 +61,37 @@ public class BatchRestController {
 		}
 	}
 	
-	@GetMapping("/{batchId}")
-	public ResponseEntity<?> getBatchReport(@RequestParam String batchId) {
+	@GetMapping("/{refBatch}")
+	public ResponseEntity<?> getBatchReport(@PathVariable String refBatch) {
 		try {
-			Batch batch = batchService.findBatch(batchId);
+			Batch batch = batchService.findBatch(refBatch);
 			return ResponseEntity.ok(batch);
 		} catch (BatchException e) {
 			TransferResponse errorResponse = new TransferResponse("FAILURE", e.getMessage());
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
 		}
+	}
+	
+	@GetMapping("/transfers/failed/refLot:{batchRef}")
+	public ResponseEntity<?> getFailedTransfersWithBatch(@PathVariable String batchRef) {
+		try {
+			List<BatchTransfer> list = batchService.findFailedTransfersWithBatch(batchRef);
+			return ResponseEntity.ok(list);
+		} catch (BatchException e) {
+			TransferResponse errorResponse = new TransferResponse("FAILURE", e.getMessage());
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+		}
+	}
+	
+	@GetMapping("/transfers/failed/destAccount:{destAccount}")
+	public ResponseEntity<?> getFailedTransfersWithAccount(@PathVariable String destAccount) {
+		List<BatchTransfer> list = batchService.findFailedTransfersWithDestAccount(destAccount);
+		return ResponseEntity.ok(list);
+	}
+	
+	@GetMapping("/transfers/failed/byDate")
+	public ResponseEntity<?> getFailedTransfersWithDate(@RequestParam LocalDate lowLimit, @RequestParam LocalDate highLimit) {
+		List<BatchTransfer> list = batchService.findFailedTransfersWithDate(lowLimit, highLimit);
+		return ResponseEntity.ok(list);
 	}
 }

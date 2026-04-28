@@ -46,6 +46,9 @@ public class BatchService {
 	 */
 	@Autowired
 	private BatchTransferRepository batchTransferRepo;
+	
+	@Autowired
+	private MailService mailing;
 
 	/**
 	 * L'instance de logueur.
@@ -109,6 +112,7 @@ public class BatchService {
 		int successful = batchTransferRepo.countByBatchAndStatusIn(batch, statusSuccessful);
 		log.write("End of execution for batch n°" + batchRef + "  Successful transfers : " + successful
 				+ ", Failed transfers : " + failed);
+		mailing.sendBatchReport("fake@mail.com"/* UserCGB.getEmail() */, batchRef, batch.getStartDate(), successful, failed);
 		batchRepo.save(batch);
 	}
 
@@ -175,7 +179,7 @@ public class BatchService {
 		BatchTransfer batchTransfer = transferRequest.DTOtoBatchTransfer();
 
 		batchTransfer.setBatch(batch);
-		batchTransfer.setCompletionDate(null);
+		batchTransfer.setCompletionDate(LocalDate.now());
 		batchTransfer.setStatus(status);
 
 		return batchTransferRepo.save(batchTransfer);
@@ -184,11 +188,24 @@ public class BatchService {
 	/**
 	 * Méthode de récupération d'un lot.
 	 * 
-	 * @param refLot La référence du lot.
+	 * @param refBatch La référence du lot.
 	 * @return Le lot et tous les virements qui lui sont associés.
 	 * @throws BatchException Eurreur renvoyée si le lot n'existe pas dans la BDD.
 	 */
-	public Batch findBatch(String refLot) throws BatchException {
-		return batchRepo.findByRefBatch(refLot).orElseThrow(() -> new BatchException(BatchFailure.BATCH_NOT_FOUND));
+	public Batch findBatch(String refBatch) throws BatchException {
+		return batchRepo.findByRefBatch(refBatch).orElseThrow(() -> new BatchException(BatchFailure.BATCH_NOT_FOUND));
+	}
+	
+	public List<BatchTransfer> findFailedTransfersWithBatch(String batchRef) throws BatchException {
+		Batch batch = batchRepo.findByRefBatch(batchRef).orElseThrow(() -> new BatchException(BatchFailure.BATCH_NOT_FOUND));
+		return batchTransferRepo.findByBatchAndStatusNot(batch, "success");
+	}
+	
+	public List<BatchTransfer> findFailedTransfersWithDate(LocalDate startDateInterval, LocalDate endDateInterval) {
+		return batchTransferRepo.findByCompletionDateBetweenAndStatusNot(startDateInterval, endDateInterval, "success");
+	}
+	
+	public List<BatchTransfer> findFailedTransfersWithDestAccount(String accountNumber) {
+		return batchTransferRepo.findByDestinationAccountAndStatusNot(accountNumber, "success");
 	}
 }
