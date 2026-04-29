@@ -1,6 +1,7 @@
 package cgb.transfer;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.LocalDate;
@@ -12,7 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
@@ -33,6 +36,9 @@ public class BatchControllerTest {
 
 	@Autowired
 	private MockMvc mockMvc;
+	
+	@MockitoBean
+    private JavaMailSender javaMailSender;
 
 	@BeforeAll
 	static void initObjects() {
@@ -81,9 +87,9 @@ public class BatchControllerTest {
 	}
 	
 	@Test
-	void createBatchReport_Success() throws Exception {
+	void fetchBatchReport_Success() throws Exception {
 		mockMvc.perform(
-				post("/api/batches/" + LocalDate.now() + "-1").contentType(MediaType.APPLICATION_JSON))
+				get("/api/batches/" + LocalDate.now() + "-1").contentType(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk())
 				.andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(MockMvcResultMatchers.jsonPath("$.transfers.id").exists())
@@ -93,16 +99,16 @@ public class BatchControllerTest {
 	}
 	
 	@Test
-	void createBatchReport_Failure() throws Exception {
+	void fetchBatchReport_Failure() throws Exception {
 		mockMvc.perform(
-				post("/api/batches/" + null).contentType(MediaType.APPLICATION_JSON))
+				get("/api/batches/" + null).contentType(MediaType.APPLICATION_JSON))
 				.andExpect(status().isBadRequest());
 	}
 	
 	@Test
 	void fetchFailedTransfersByBatch_Success() throws Exception {
 		mockMvc.perform(
-				post("/api/batches/transfers/failed/refLot:" + LocalDate.now() + "-1").contentType(MediaType.APPLICATION_JSON))
+				get("/api/batches/transfers/failed/refLot:" + LocalDate.now() + "-1").contentType(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk())
 				.andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(MockMvcResultMatchers.jsonPath("$.id").exists())
@@ -114,14 +120,14 @@ public class BatchControllerTest {
 	@Test
 	void fetchFailedTransfersByBatch_Failure() throws Exception {
 		mockMvc.perform(
-				post("/api/batches/transfers/failed/" + null).contentType(MediaType.APPLICATION_JSON))
+				get("/api/batches/transfers/failed/" + null).contentType(MediaType.APPLICATION_JSON))
 				.andExpect(status().isBadRequest());
 	}
 	
 	@Test
 	void fetchFailedTransfersByDateInterval_Success() throws Exception {
 		mockMvc.perform(
-				post("/api/batches/transfers/failed/byDate").contentType(MediaType.APPLICATION_JSON).param("lowLimit", "2026-04-25").param("highLimit", "2026-05-20"))
+				get("/api/batches/transfers/failed/byDate").contentType(MediaType.APPLICATION_JSON).param("lowLimit", "2026-04-25").param("highLimit", "2026-05-20"))
 				.andExpect(status().isOk())
 				.andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(MockMvcResultMatchers.jsonPath("$.id").exists())
@@ -133,14 +139,14 @@ public class BatchControllerTest {
 	@Test
 	void fetchFailedTransfersByDateInterval_Failure() throws Exception {
 		mockMvc.perform(
-				post("/api/batches/transfers/failed/byDate").contentType(MediaType.APPLICATION_JSON))
+				get("/api/batches/transfers/failed/byDate").contentType(MediaType.APPLICATION_JSON))
 				.andExpect(status().isBadRequest());
 	}
 	
 	@Test
 	void fetchFailedTransfersByDestAccount_Success() throws Exception {
 		mockMvc.perform(
-				post("/api/batches/transfers/failed/destAccount:" + mockBTR3.getDestinationAccount()).contentType(MediaType.APPLICATION_JSON))
+				get("/api/batches/transfers/failed/destAccount:" + mockBTR3.getDestinationAccount()).contentType(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk())
 				.andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(MockMvcResultMatchers.jsonPath("$.id").exists())
@@ -152,7 +158,7 @@ public class BatchControllerTest {
 	@Test
 	void fetchFailedTransfersByDestAccount_Failure() throws Exception {
 		mockMvc.perform(
-				post("/api/batches/transfers/failed/byDate").contentType(MediaType.APPLICATION_JSON))
+				get("/api/batches/transfers/failed/byDate").contentType(MediaType.APPLICATION_JSON))
 				.andExpect(status().isBadRequest());
 	}
 
