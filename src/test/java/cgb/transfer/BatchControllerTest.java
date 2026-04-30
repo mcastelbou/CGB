@@ -1,8 +1,10 @@
 package cgb.transfer;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -11,7 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
@@ -27,10 +31,14 @@ public class BatchControllerTest {
 
 	private static BatchTransferRequest mockBTR1;
 	private static BatchTransferRequest mockBTR2;
+	private static BatchTransferRequest mockBTR3;
 	private static BatchRequest mockBatchRequest;
 
 	@Autowired
 	private MockMvc mockMvc;
+	
+	@MockitoBean
+    private JavaMailSender javaMailSender;
 
 	@BeforeAll
 	static void initObjects() {
@@ -43,10 +51,16 @@ public class BatchControllerTest {
 		mockBTR2.setAmount(10.00);
 		mockBTR2.setDestinationAccount("FR17323632044924987026508039");
 		mockBTR2.setDescription("Diz Euwos !");
+		
+		mockBTR3 = new BatchTransferRequest();
+		mockBTR3.setAmount(10000.00);
+		mockBTR3.setDestinationAccount("FR7618315100000406690515531");
+		mockBTR3.setDescription("Diz milles balles!");
 
 		ArrayList<BatchTransferRequest> transferList = new ArrayList<BatchTransferRequest>();
 		transferList.add(mockBTR1);
 		transferList.add(mockBTR2);
+		transferList.add(mockBTR3);
 
 		mockBatchRequest = new BatchRequest();
 		mockBatchRequest.setSourceAccount("FR7618315100001028575571887");
@@ -69,6 +83,66 @@ public class BatchControllerTest {
 		
 		mockMvc.perform(
 				post("/api/batches").contentType(MediaType.APPLICATION_JSON).content(asJsonString(mockBatchRequest)))
+				.andExpect(status().isBadRequest());
+	}
+	
+	@Test
+	void fetchBatchReport_Success() throws Exception {
+		mockMvc.perform(
+				get("/api/batches/" + LocalDate.now() + "-1").contentType(MediaType.APPLICATION_JSON))
+				.andExpect(status().isOk())
+				.andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
+	}
+	
+	@Test
+	void fetchBatchReport_Failure() throws Exception {
+		mockMvc.perform(
+				get("/api/batches/" + null).contentType(MediaType.APPLICATION_JSON))
+				.andExpect(status().isBadRequest());
+	}
+	
+	@Test
+	void fetchFailedTransfersByBatch_Success() throws Exception {
+		mockMvc.perform(
+				get("/api/batches/transfers/failed/refLot:" + LocalDate.now() + "-1").contentType(MediaType.APPLICATION_JSON))
+				.andExpect(status().isOk())
+				.andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
+	}
+	
+	@Test
+	void fetchFailedTransfersByBatch_Failure() throws Exception {
+		mockMvc.perform(
+				get("/api/batches/transfers/failed/refLot:" + null).contentType(MediaType.APPLICATION_JSON))
+				.andExpect(status().isBadRequest());
+	}
+	
+	@Test
+	void fetchFailedTransfersByDateInterval_Success() throws Exception {
+		mockMvc.perform(
+				get("/api/batches/transfers/failed/byDate").contentType(MediaType.APPLICATION_JSON).param("lowLimit", "2026-04-20").param("highLimit", "2026-05-20"))
+				.andExpect(status().isOk())
+				.andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
+	}
+	
+	@Test
+	void fetchFailedTransfersByDateInterval_Failure() throws Exception {
+		mockMvc.perform(
+				get("/api/batches/transfers/failed/byDate").contentType(MediaType.APPLICATION_JSON))
+				.andExpect(status().isBadRequest());
+	}
+	
+	@Test
+	void fetchFailedTransfersByDestAccount_Success() throws Exception {
+		mockMvc.perform(
+				get("/api/batches/transfers/failed/destAccount:" + mockBTR3.getDestinationAccount()).contentType(MediaType.APPLICATION_JSON))
+				.andExpect(status().isOk())
+				.andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
+	}
+	
+	@Test
+	void fetchFailedTransfersByDestAccount_Failure() throws Exception {
+		mockMvc.perform(
+				get("/api/batches/transfers/failed/byDate").contentType(MediaType.APPLICATION_JSON))
 				.andExpect(status().isBadRequest());
 	}
 
