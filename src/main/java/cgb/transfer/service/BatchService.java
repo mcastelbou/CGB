@@ -119,6 +119,13 @@ public class BatchService {
 				failed);
 		batchRepo.save(batch);
 	}
+	
+	@Async
+	@Transactional
+	public void retryBatch(String oldBatchId, Batch newBatch) {
+		log.write("Retrying batch n°" + oldBatchId + ", new batchId is " + newBatch.getRefBatch());
+		Batch batch = batchRepo.findByRefBatch(newBatch.getRefBatch()).orElseThrow();
+	}
 
 	/**
 	 * Méthode de création d'un virement par lot.
@@ -237,5 +244,20 @@ public class BatchService {
 	 */
 	public List<BatchTransfer> findFailedTransfersWithDestAccount(String accountNumber) {
 		return batchTransferRepo.findByDestinationAccountAndStatusNot(accountNumber, "success");
+	}
+	
+	/**
+	 * Méthode de récupération des virements par lots qui ont été reportés par la
+	 * référence du lot.
+	 * 
+	 * @param batchRef La référence du lot.
+	 * @return La liste des virements reportés pour fonds insuffisant du lot, peut
+	 *         être vide.
+	 * @throws BatchException Une erreur est levée si le lot fournit n'existe pas.
+	 */
+	public List<BatchTransfer> findDelayedTransfersWithBatch(String batchRef) throws BatchException {
+		Batch batch = batchRepo.findByRefBatch(batchRef)
+				.orElseThrow(() -> new BatchException(BatchFailure.BATCH_NOT_FOUND));
+		return batchTransferRepo.findByBatchAndStatus(batch, "delayed");
 	}
 }

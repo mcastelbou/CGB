@@ -2,6 +2,7 @@ package cgb.transfer.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
+import cgb.transfer.dto.BatchRequest;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -51,6 +52,18 @@ public class Batch {
 	@OneToMany(mappedBy = "batch", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<BatchTransfer> transferList = new ArrayList<BatchTransfer>();
 
+	// Constructeurs
+	public Batch() {	
+	}
+	
+	public Batch(BatchRequest br) {
+		super();
+		this.refBatch = br.getRefBatch();
+		this.sourceAccount = br.getSourceAccount();
+		this.description = br.getDescription();
+		this.status = "received";
+	}
+	
 	// Getters & Setters
 
 	/**
@@ -168,5 +181,14 @@ public class Batch {
 	 */
 	public void addTransfer(BatchTransfer transferRequest) {
 		this.transferList.add(transferRequest);
+	}
+	
+	public boolean hasDelays() {
+		for (BatchTransfer batchTransfer : this.transferList) {
+			if (batchTransfer.getStatus() == "delayed") {
+				return true;
+			}
+		}
+		return false;
 	}
 }

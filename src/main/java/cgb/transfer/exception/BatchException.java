@@ -8,7 +8,7 @@ public class BatchException extends Exception {
 	private static final long serialVersionUID = 1L;
 
 	public enum BatchFailure {
-		BATCH_NOT_FOUND
+		BATCH_NOT_FOUND, BATCH_DOESNT_CONTAIN_DELAYS
 	}
 
 	public BatchException(BatchFailure bf) {

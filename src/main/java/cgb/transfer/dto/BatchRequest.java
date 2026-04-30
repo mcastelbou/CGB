@@ -4,6 +4,9 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import cgb.transfer.entity.Batch;
+import cgb.transfer.entity.BatchTransfer;
+
 /**
  * La classe de DTO d'un lot de virements.
  */
@@ -34,6 +37,24 @@ public class BatchRequest {
 	 */
 	private ArrayList<BatchTransferRequest> transfers;
 
+	public BatchRequest() {
+	}
+	
+	public BatchRequest(Batch batch) {
+		 super();
+		 this.startDate = batch.getStartDate();
+		 this.description = batch.getDescription();
+		 this.sourceAccount = batch.getSourceAccount();
+		 this.status = batch.getStatus();
+		 
+		 ArrayList<BatchTransferRequest> btrList = new ArrayList<BatchTransferRequest>();
+		 for (BatchTransfer bt : batch.getTransferList()) {
+			 BatchTransferRequest btr = BatchTransferRequest.BatchTransferToDTO(bt);
+			 btrList.add(btr);
+		 }
+		 this.transfers = btrList;
+	 }
+	
 	/**
 	 * Getter de l'identifiant du lot.
 	 * 
@@ -140,6 +161,25 @@ public class BatchRequest {
 	 */
 	public void setTransfers(ArrayList<BatchTransferRequest> transferList) {
 		this.transfers = transferList;
+	}
+	
+	/**
+	 * Méthode de bascule du DTO vers l'objet métier.
+	 * 
+	 * @return Un lot de virements de type Batch.
+	 */
+	public Batch DTOtoBatch() {
+		return new Batch(this);
+	}
+
+	/**
+	 * Méthode de classe de bascule d'un objet métier vers un DTO.
+	 * 
+	 * @param bt L'objet métier de type BatchTransfer.
+	 * @return Un DTO représentant l'objet métier initial.
+	 */
+	public static BatchRequest BatchToDTO(Batch batch) {
+		return new BatchRequest(batch);
 	}
 
 }

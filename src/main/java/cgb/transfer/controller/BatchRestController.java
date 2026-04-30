@@ -19,6 +19,7 @@ import cgb.transfer.dto.BatchTransferRequest;
 import cgb.transfer.entity.Batch;
 import cgb.transfer.entity.BatchTransfer;
 import cgb.transfer.exception.BatchException;
+import cgb.transfer.exception.BatchException.BatchFailure;
 import cgb.transfer.exception.CreateTransferException;
 import cgb.transfer.service.BatchService;
 
@@ -124,5 +125,24 @@ public class BatchRestController {
 			@RequestParam LocalDate highLimit) {
 		List<BatchTransfer> list = batchService.findFailedTransfersWithDate(lowLimit, highLimit);
 		return ResponseEntity.ok(list);
+	}
+	
+	@PostMapping("/retry/refLot:{refBatch}")
+	public ResponseEntity<?> retryBatchContainingDelays(@PathVariable String refBatch) {
+		try {
+			Batch oldBatch = batchService.findBatch(refBatch);
+			
+			if (!oldBatch.hasDelays()) {
+				throw new BatchException(BatchFailure.BATCH_DOESNT_CONTAIN_DELAYS);
+			}
+			
+			Batch newBatch = batchService.createBatch(BatchRequest.BatchToDTO(oldBatch));
+			batchService.retryBatch(refBatch, newBatch);
+			
+			return ResponseEntity.ok(newBatch);
+		} catch (Exception e) {
+			TransferResponse errorResponse = new TransferResponse("FAILURE", e.getMessage());
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+		}
 	}
 }
