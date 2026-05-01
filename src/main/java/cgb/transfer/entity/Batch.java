@@ -185,7 +185,7 @@ public class Batch {
 	
 	public boolean hasDelays() {
 		for (BatchTransfer batchTransfer : this.transferList) {
-			if (batchTransfer.getStatus() == "delayed") {
+			if (batchTransfer.getStatus().equals("delayed")) {
 				return true;
 			}
 		}

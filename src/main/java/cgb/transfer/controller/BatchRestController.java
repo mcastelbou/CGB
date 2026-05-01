@@ -4,7 +4,6 @@ import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -59,7 +58,7 @@ public class BatchRestController {
 			// Uniquement renvoyée lorsque le lot (hormis la liste de virements) en lui même
 			// contient des erreurs.
 			TransferResponse errorResponse = new TransferResponse("FAILURE", e.getMessage());
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+			return ResponseEntity.badRequest().body(errorResponse);
 		}
 	}
 
@@ -77,7 +76,31 @@ public class BatchRestController {
 			return ResponseEntity.ok(batch);
 		} catch (BatchException e) {
 			TransferResponse errorResponse = new TransferResponse("FAILURE", e.getMessage());
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+			return ResponseEntity.badRequest().body(errorResponse);
+		}
+	}
+	
+	@PostMapping("/{refBatch}/replay")
+	public ResponseEntity<?> replayBatchContainingDelays(@PathVariable String refBatch) {
+		try {
+			Batch oldBatch = batchService.findBatch(refBatch);
+			
+			if (!oldBatch.hasDelays()) {
+				throw new BatchException(BatchFailure.BATCH_DOESNT_CONTAIN_DELAYS);
+			}
+			
+			BatchRequest batchRequest = BatchRequest.BatchToDTO(oldBatch);
+			
+			batchRequest.setRefBatch(null);
+			batchRequest.setDescription("REJEU " + oldBatch.getDescription());
+			
+			Batch newBatch = batchService.createBatch(batchRequest);
+			batchService.replayBatch(oldBatch, newBatch.getRefBatch());
+			
+			return ResponseEntity.ok(newBatch);
+		} catch (Exception e) {
+			TransferResponse errorResponse = new TransferResponse("FAILURE", e.getMessage());
+			return ResponseEntity.badRequest().body(errorResponse);
 		}
 	}
 
@@ -95,7 +118,7 @@ public class BatchRestController {
 			return ResponseEntity.ok(list);
 		} catch (BatchException e) {
 			TransferResponse errorResponse = new TransferResponse("FAILURE", e.getMessage());
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+			return ResponseEntity.badRequest().body(errorResponse);
 		}
 	}
 
@@ -127,22 +150,4 @@ public class BatchRestController {
 		return ResponseEntity.ok(list);
 	}
 	
-	@PostMapping("/retry/refLot:{refBatch}")
-	public ResponseEntity<?> retryBatchContainingDelays(@PathVariable String refBatch) {
-		try {
-			Batch oldBatch = batchService.findBatch(refBatch);
-			
-			if (!oldBatch.hasDelays()) {
-				throw new BatchException(BatchFailure.BATCH_DOESNT_CONTAIN_DELAYS);
-			}
-			
-			Batch newBatch = batchService.createBatch(BatchRequest.BatchToDTO(oldBatch));
-			batchService.retryBatch(refBatch, newBatch);
-			
-			return ResponseEntity.ok(newBatch);
-		} catch (Exception e) {
-			TransferResponse errorResponse = new TransferResponse("FAILURE", e.getMessage());
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
-		}
-	}
 }

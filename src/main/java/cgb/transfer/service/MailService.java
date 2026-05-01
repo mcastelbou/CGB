@@ -3,6 +3,7 @@ package cgb.transfer.service;
 import java.time.LocalDate;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -41,6 +42,10 @@ public class MailService {
 		String content = String.format(format, batchRef, date, successfulTransfers, failedTransfers);
 
 		simpleMail.setText(content);
-		mailSender.send(simpleMail);
+		try {
+			mailSender.send(simpleMail);
+		} catch (MailException e) {
+			System.out.println("Le service de mailling est actuellement hors ligne.");
+		}
 	}
 }
