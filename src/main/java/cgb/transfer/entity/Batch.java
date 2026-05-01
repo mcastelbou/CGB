@@ -53,9 +53,9 @@ public class Batch {
 	private List<BatchTransfer> transferList = new ArrayList<BatchTransfer>();
 
 	// Constructeurs
-	public Batch() {	
+	public Batch() {
 	}
-	
+
 	public Batch(BatchRequest br) {
 		super();
 		this.refBatch = br.getRefBatch();
@@ -63,7 +63,7 @@ public class Batch {
 		this.description = br.getDescription();
 		this.status = "received";
 	}
-	
+
 	// Getters & Setters
 
 	/**
@@ -182,11 +182,20 @@ public class Batch {
 	public void addTransfer(BatchTransfer transferRequest) {
 		this.transferList.add(transferRequest);
 	}
-	
+
+	/**
+	 * Méthode pour déterminer si un lot contient des virements annulés pour fonds
+	 * insuffisants.
+	 * 
+	 * @return True s'il en contient, sinon false. Si le virement n'est pas encore
+	 *         entièrement exécuté (état 'received') on renvoie false aussi.
+	 */
 	public boolean hasDelays() {
-		for (BatchTransfer batchTransfer : this.transferList) {
-			if (batchTransfer.getStatus().equals("delayed")) {
-				return true;
+		if (this.status.equals("closed")) {
+			for (BatchTransfer batchTransfer : this.transferList) {
+				if (batchTransfer.getStatus().equals("delayed")) {
+					return true;
+				}
 			}
 		}
 		return false;

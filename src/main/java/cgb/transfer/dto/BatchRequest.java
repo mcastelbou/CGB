@@ -16,45 +16,58 @@ public class BatchRequest {
 	 * L'identifiant du lot au format AAAA-MM-JJ-NUMERO_D_ORDRE.
 	 */
 	private String refBatch;
+
 	/**
 	 * Le compte source de l'ensemble des virements du lot.
 	 */
 	private String sourceAccount;
+
 	/**
 	 * La description associée au lot de virements.
 	 */
 	private String description;
+
 	/**
 	 * La date de début du traitement du lot.
 	 */
 	private LocalDate startDate;
+
 	/**
 	 * L'état du lot ('received' si reçu, 'completed' si le traitement est fini.
 	 */
 	private String status;
+
 	/**
 	 * La liste des virements associés au lot.
 	 */
 	private ArrayList<BatchTransferRequest> transfers;
 
+	/**
+	 * Constructeur par défaut du la classe de DTO BatchRequest.
+	 */
 	public BatchRequest() {
 	}
-	
+
+	/**
+	 * Constructeur de la classe de DTO BatchRequest à partir d'un lot.
+	 * 
+	 * @param batch Le lot à transformer en DTO.
+	 */
 	public BatchRequest(Batch batch) {
-		 super();
-		 this.startDate = batch.getStartDate();
-		 this.description = batch.getDescription();
-		 this.sourceAccount = batch.getSourceAccount();
-		 this.status = batch.getStatus();
-		 
-		 ArrayList<BatchTransferRequest> btrList = new ArrayList<BatchTransferRequest>();
-		 for (BatchTransfer bt : batch.getTransferList()) {
-			 BatchTransferRequest btr = BatchTransferRequest.BatchTransferToDTO(bt);
-			 btrList.add(btr);
-		 }
-		 this.transfers = btrList;
-	 }
-	
+		super();
+		this.startDate = batch.getStartDate();
+		this.description = batch.getDescription();
+		this.sourceAccount = batch.getSourceAccount();
+		this.status = batch.getStatus();
+
+		ArrayList<BatchTransferRequest> btrList = new ArrayList<BatchTransferRequest>();
+		for (BatchTransfer bt : batch.getTransferList()) {
+			BatchTransferRequest btr = BatchTransferRequest.BatchTransferToDTO(bt);
+			btrList.add(btr);
+		}
+		this.transfers = btrList;
+	}
+
 	/**
 	 * Getter de l'identifiant du lot.
 	 * 
@@ -162,7 +175,7 @@ public class BatchRequest {
 	public void setTransfers(ArrayList<BatchTransferRequest> transferList) {
 		this.transfers = transferList;
 	}
-	
+
 	/**
 	 * Méthode de bascule du DTO vers l'objet métier.
 	 * 

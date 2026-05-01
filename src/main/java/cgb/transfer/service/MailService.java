@@ -42,6 +42,7 @@ public class MailService {
 		String content = String.format(format, batchRef, date, successfulTransfers, failedTransfers);
 
 		simpleMail.setText(content);
+
 		try {
 			mailSender.send(simpleMail);
 		} catch (MailException e) {

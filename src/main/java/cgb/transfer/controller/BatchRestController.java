@@ -79,24 +79,32 @@ public class BatchRestController {
 			return ResponseEntity.badRequest().body(errorResponse);
 		}
 	}
-	
+
+	/**
+	 * Méthode POST de la route de rejeu des virements par lot annulés pour fonds
+	 * insufisants.
+	 * 
+	 * @param refBatch La référence du lot dont au moins un des virements a été
+	 *                 annulé.
+	 * @return Les infos du lot créé pour le rejeu de ces virements uniquement.
+	 */
 	@PostMapping("/{refBatch}/replay")
 	public ResponseEntity<?> replayBatchContainingDelays(@PathVariable String refBatch) {
 		try {
 			Batch oldBatch = batchService.findBatch(refBatch);
-			
+
 			if (!oldBatch.hasDelays()) {
 				throw new BatchException(BatchFailure.BATCH_DOESNT_CONTAIN_DELAYS);
 			}
-			
+
 			BatchRequest batchRequest = BatchRequest.BatchToDTO(oldBatch);
-			
+
 			batchRequest.setRefBatch(null);
 			batchRequest.setDescription("REJEU " + oldBatch.getDescription());
-			
+
 			Batch newBatch = batchService.createBatch(batchRequest);
 			batchService.replayBatch(oldBatch, newBatch.getRefBatch());
-			
+
 			return ResponseEntity.ok(newBatch);
 		} catch (Exception e) {
 			TransferResponse errorResponse = new TransferResponse("FAILURE", e.getMessage());
@@ -149,5 +157,5 @@ public class BatchRestController {
 		List<BatchTransfer> list = batchService.findFailedTransfersWithDate(lowLimit, highLimit);
 		return ResponseEntity.ok(list);
 	}
-	
+
 }

@@ -120,6 +120,13 @@ public class BatchService {
 		batchRepo.save(batch);
 	}
 
+	/**
+	 * Méthode asynchrone de gestion du rejeu des virement par lots annulés pour
+	 * fonds insuffisants.
+	 * 
+	 * @param oldBatch   Le lot dont certains virement ont été annulés.
+	 * @param newBatchId La référence du lot nouvellement créé.
+	 */
 	@Async
 	@Transactional
 	public void replayBatch(Batch oldBatch, String newBatchId) {
@@ -195,7 +202,16 @@ public class BatchService {
 		return batchTransferRepo.save(batchTransfer);
 
 	}
-	
+
+	/**
+	 * Méthode permettant d'exécuter le rejeu d'un virement annulé pour fonds
+	 * insuffisants.
+	 * 
+	 * @param batch           Le lot auquel sera ajouté le virement.
+	 * @param batchTransferId L'identifiant du virement annulé pour fonds
+	 *                        insuffisants.
+	 * @return Le virement s'il est maintenant possible, sinon null.
+	 */
 	@Transactional
 	public BatchTransfer replayBatchTransfer(Batch batch, Long batchTransferId) {
 		BatchTransfer bt = batchTransferRepo.findById(batchTransferId).get();
@@ -203,22 +219,25 @@ public class BatchService {
 
 		Account sourceAccount = accountRepo.findById(batch.getSourceAccount()).get();
 		Account destAccount = accountRepo.findById(bt.getDestinationAccount()).get();
-		
+
 		if (sourceAccount.getSolde().compareTo(amount) < 0) {
+			// Si le compte source n'a toujours pas les fonds nécessaires on log et on sort.
 			log.write("Error during replay of transfer n°" + bt.getId() + " : INSUFFICIENT_FUNDS");
+			bt.setStatus(Status.CANCELED.getName());
+			batchTransferRepo.save(bt);
 			return null;
 		}
-		
+
 		sourceAccount.setSolde(sourceAccount.getSolde() - (amount));
 		destAccount.setSolde(destAccount.getSolde() + (amount));
 
 		accountRepo.save(sourceAccount);
 		accountRepo.save(destAccount);
-		
+
 		bt.setBatch(batch);
 		bt.setCompletionDate(LocalDate.now());
 		bt.setStatus(Status.SUCCESS.getName());
-		
+
 		return batchTransferRepo.save(bt);
 	}
 
@@ -242,7 +261,7 @@ public class BatchService {
 
 		return batchTransferRepo.save(batchTransfer);
 	}
-	
+
 	/**
 	 * Méthode de récupération d'un lot.
 	 * 
