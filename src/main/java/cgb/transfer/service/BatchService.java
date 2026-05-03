@@ -10,6 +10,7 @@ import cgb.transfer.dto.BatchTransferRequest;
 import cgb.transfer.entity.Account;
 import cgb.transfer.entity.Batch;
 import cgb.transfer.entity.BatchTransfer;
+import cgb.transfer.entity.Status;
 import cgb.transfer.exception.CreateTransferException;
 import cgb.transfer.exception.BatchException;
 import cgb.transfer.exception.BatchException.BatchFailure;
@@ -100,7 +101,7 @@ public class BatchService {
 	@Transactional
 	public void executeBatch(String batchRef, List<BatchTransferRequest> transferRequestList) {
 		log.write("Beginning execution for batch n°" + batchRef);
-		Batch batch = batchRepo.findByRefBatch(batchRef).orElseThrow();
+		Batch batch = batchRepo.findByRefBatch(batchRef).get();
 
 		for (BatchTransferRequest transferRequest : transferRequestList) {
 			BatchTransfer newBatchTransfer = createBatchTransfer(batch, transferRequest);
@@ -109,14 +110,45 @@ public class BatchService {
 
 		batch.setStatus("closed");
 
-		String[] statusFailed = { "failure", "delayed", "canceled" };
-		String[] statusSuccessful = { "success" };
-		int failed = batchTransferRepo.countByBatchAndStatusIn(batch, statusFailed);
-		int successful = batchTransferRepo.countByBatchAndStatusIn(batch, statusSuccessful);
+		int failed = batchTransferRepo.countByBatchAndStatusNot(batch, Status.SUCCESS.getName());
+		int successful = batchTransferRepo.countByBatchAndStatus(batch, Status.SUCCESS.getName());
+
 		log.write("End of execution for batch n°" + batchRef + "  Successful transfers : " + successful
 				+ ", Failed transfers : " + failed);
 		mailing.sendBatchReport("fake@mail.com"/* UserCGB.getEmail() */, batchRef, batch.getStartDate(), successful,
 				failed);
+		batchRepo.save(batch);
+	}
+
+	/**
+	 * Méthode asynchrone de gestion du rejeu des virement par lots annulés pour
+	 * fonds insuffisants.
+	 * 
+	 * @param oldBatch   Le lot dont certains virement ont été annulés.
+	 * @param newBatchId La référence du lot nouvellement créé.
+	 */
+	@Async
+	@Transactional
+	public void replayBatch(Batch oldBatch, String newBatchId) {
+		log.write("Replaying batch n°" + oldBatch.getRefBatch() + ", new batchId is " + newBatchId);
+		Batch batch = batchRepo.findByRefBatch(newBatchId).get();
+
+		List<BatchTransfer> transferList = batchTransferRepo.findByBatchAndStatus(oldBatch, Status.DELAYED.getName());
+
+		for (BatchTransfer bt : transferList) {
+			replayBatchTransfer(batch, bt.getId());
+			batch.addTransfer(bt);
+		}
+
+		batch.setStatus("closed");
+
+		int failed = batchTransferRepo.countByBatchAndStatusNot(batch, Status.SUCCESS.getName());
+		int successful = batchTransferRepo.countByBatchAndStatus(batch, Status.SUCCESS.getName());
+
+		log.write("End of replay for batch n°" + batch.getRefBatch() + "  Successful transfers : " + successful
+				+ ", Failed transfers : " + failed);
+		mailing.sendBatchReport("fake@mail.com"/* UserCGB.getEmail() */, batch.getRefBatch(), batch.getStartDate(),
+				successful, failed);
 		batchRepo.save(batch);
 	}
 
@@ -134,21 +166,24 @@ public class BatchService {
 		Account sourceAccount = accountRepo.findById(batch.getSourceAccount()).get();
 		Optional<Account> destAccount = accountRepo.findById(transferRequest.getDestinationAccount());
 
-		if (!destAccount.isPresent()) {
+		if (destAccount.isEmpty()) {
 			// Le compte destinataire n'existe pas.
-			BatchTransfer invalidBatch = fallbackBatchTransfer(batch, transferRequest, "failure");
-			log.write("Error during transfer n°" + invalidBatch.getId() + " : DESTINATION_ACCOUNT_NOT_FOUND");
-			return invalidBatch;
+			BatchTransfer invalidBatchTransfer = fallbackBatchTransfer(batch, transferRequest,
+					Status.FAILURE.getName());
+			log.write("Error during transfer n°" + invalidBatchTransfer.getId() + " : DESTINATION_ACCOUNT_NOT_FOUND");
+			return batchTransferRepo.save(invalidBatchTransfer);
 		} else if (amount < 0) {
 			// Le montant du virement est négatif.
-			BatchTransfer invalidBatch = fallbackBatchTransfer(batch, transferRequest, "canceled");
-			log.write("Error during transfer n°" + invalidBatch.getId() + " : NEGATIVE_AMOUNT");
-			return invalidBatch;
+			BatchTransfer invalidBatchTransfer = fallbackBatchTransfer(batch, transferRequest,
+					Status.CANCELED.getName());
+			log.write("Error during transfer n°" + invalidBatchTransfer.getId() + " : NEGATIVE_AMOUNT");
+			return batchTransferRepo.save(invalidBatchTransfer);
 		} else if (sourceAccount.getSolde().compareTo(amount) < 0) {
 			// Les fonds du compte source sont insuffisants.
-			BatchTransfer invalidBatch = fallbackBatchTransfer(batch, transferRequest, "delayed");
-			log.write("Error during transfer n°" + invalidBatch.getId() + " : INSUFFICIENT_FUNDS");
-			return invalidBatch;
+			BatchTransfer invalidBatchTransfer = fallbackBatchTransfer(batch, transferRequest,
+					Status.DELAYED.getName());
+			log.write("Error during transfer n°" + invalidBatchTransfer.getId() + " : INSUFFICIENT_FUNDS");
+			return batchTransferRepo.save(invalidBatchTransfer);
 		}
 
 		Account destinationAccount = destAccount.get();
@@ -162,10 +197,48 @@ public class BatchService {
 		batchTransfer.setBatch(batch);
 		batchTransfer.setAmount(amount);
 		batchTransfer.setCompletionDate(LocalDate.now());
-		batchTransfer.setStatus("success");
+		batchTransfer.setStatus(Status.SUCCESS.getName());
 
 		return batchTransferRepo.save(batchTransfer);
 
+	}
+
+	/**
+	 * Méthode permettant d'exécuter le rejeu d'un virement annulé pour fonds
+	 * insuffisants.
+	 * 
+	 * @param batch           Le lot auquel sera ajouté le virement.
+	 * @param batchTransferId L'identifiant du virement annulé pour fonds
+	 *                        insuffisants.
+	 * @return Le virement s'il est maintenant possible, sinon null.
+	 */
+	@Transactional
+	public BatchTransfer replayBatchTransfer(Batch batch, Long batchTransferId) {
+		BatchTransfer bt = batchTransferRepo.findById(batchTransferId).get();
+		Double amount = bt.getAmount();
+
+		Account sourceAccount = accountRepo.findById(batch.getSourceAccount()).get();
+		Account destAccount = accountRepo.findById(bt.getDestinationAccount()).get();
+
+		if (sourceAccount.getSolde().compareTo(amount) < 0) {
+			// Si le compte source n'a toujours pas les fonds nécessaires on log et on sort.
+			log.write("Error during replay of transfer n°" + bt.getId() + " : INSUFFICIENT_FUNDS");
+			bt.setStatus(Status.CANCELED.getName());
+			batchTransferRepo.save(bt);
+			return null;
+		}
+
+		sourceAccount.setSolde(sourceAccount.getSolde() - (amount));
+		destAccount.setSolde(destAccount.getSolde() + (amount));
+
+		accountRepo.save(sourceAccount);
+		accountRepo.save(destAccount);
+
+		bt.setBatch(batch);
+		bt.setCompletionDate(LocalDate.now());
+		bt.setStatus(Status.SUCCESS.getName());
+
+		return batchTransferRepo.save(bt);
 	}
 
 	/**
@@ -211,7 +284,7 @@ public class BatchService {
 	public List<BatchTransfer> findFailedTransfersWithBatch(String batchRef) throws BatchException {
 		Batch batch = batchRepo.findByRefBatch(batchRef)
 				.orElseThrow(() -> new BatchException(BatchFailure.BATCH_NOT_FOUND));
-		return batchTransferRepo.findByBatchAndStatusNot(batch, "success");
+		return batchTransferRepo.findByBatchAndStatusNot(batch, Status.SUCCESS.getName());
 	}
 
 	/**
@@ -224,7 +297,8 @@ public class BatchService {
 	 *         vide.
 	 */
 	public List<BatchTransfer> findFailedTransfersWithDate(LocalDate startDateInterval, LocalDate endDateInterval) {
-		return batchTransferRepo.findByCompletionDateBetweenAndStatusNot(startDateInterval, endDateInterval, "success");
+		return batchTransferRepo.findByCompletionDateBetweenAndStatusNot(startDateInterval, endDateInterval,
+				Status.SUCCESS.getName());
 	}
 
 	/**
@@ -236,6 +310,21 @@ public class BatchService {
 	 *         échec, peut être vide.
 	 */
 	public List<BatchTransfer> findFailedTransfersWithDestAccount(String accountNumber) {
-		return batchTransferRepo.findByDestinationAccountAndStatusNot(accountNumber, "success");
+		return batchTransferRepo.findByDestinationAccountAndStatusNot(accountNumber, Status.SUCCESS.getName());
+	}
+
+	/**
+	 * Méthode de récupération des virements par lots qui ont été reportés par la
+	 * référence du lot.
+	 * 
+	 * @param batchRef La référence du lot.
+	 * @return La liste des virements reportés pour fonds insuffisant du lot, peut
+	 *         être vide.
+	 * @throws BatchException Une erreur est levée si le lot fournit n'existe pas.
+	 */
+	public List<BatchTransfer> findDelayedTransfersWithBatch(String batchRef) throws BatchException {
+		Batch batch = batchRepo.findByRefBatch(batchRef)
+				.orElseThrow(() -> new BatchException(BatchFailure.BATCH_NOT_FOUND));
+		return batchTransferRepo.findByBatchAndStatus(batch, Status.DELAYED.getName());
 	}
 }

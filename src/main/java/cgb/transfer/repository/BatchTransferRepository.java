@@ -15,8 +15,16 @@ import cgb.transfer.entity.BatchTransfer;
  */
 @Repository
 public interface BatchTransferRepository extends JpaRepository<BatchTransfer, Long> {
-	int countByBatchAndStatusIn(Batch batch, String[] status);
+	int countByBatchAndStatus(Batch batch, String status);
+
+	int countByBatchAndStatusNot(Batch batch, String status);
+
 	List<BatchTransfer> findByBatchAndStatusNot(Batch batch, String status);
-	List<BatchTransfer> findByCompletionDateBetweenAndStatusNot(LocalDate oldestDate, LocalDate newestDate, String status);
+
+	List<BatchTransfer> findByBatchAndStatus(Batch batch, String status);
+
+	List<BatchTransfer> findByCompletionDateBetweenAndStatusNot(LocalDate oldestDate, LocalDate newestDate,
+			String status);
+
 	List<BatchTransfer> findByDestinationAccountAndStatusNot(String accountNumber, String status);
 }

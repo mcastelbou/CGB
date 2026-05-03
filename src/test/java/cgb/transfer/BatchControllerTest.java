@@ -36,9 +36,9 @@ public class BatchControllerTest {
 
 	@Autowired
 	private MockMvc mockMvc;
-	
+
 	@MockitoBean
-    private JavaMailSender javaMailSender;
+	private JavaMailSender javaMailSender;
 
 	@BeforeAll
 	static void initObjects() {
@@ -51,7 +51,7 @@ public class BatchControllerTest {
 		mockBTR2.setAmount(10.00);
 		mockBTR2.setDestinationAccount("FR17323632044924987026508039");
 		mockBTR2.setDescription("Diz Euwos !");
-		
+
 		mockBTR3 = new BatchTransferRequest();
 		mockBTR3.setAmount(10000.00);
 		mockBTR3.setDestinationAccount("FR7618315100000406690515531");
@@ -76,73 +76,80 @@ public class BatchControllerTest {
 				.andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(MockMvcResultMatchers.jsonPath("$.status").exists());
 	}
-	
+
 	@Test
 	void createBatchTest_Failure() throws Exception {
 		mockBatchRequest.setSourceAccount("FR7618315100001028575571867");
-		
+
 		mockMvc.perform(
 				post("/api/batches").contentType(MediaType.APPLICATION_JSON).content(asJsonString(mockBatchRequest)))
 				.andExpect(status().isBadRequest());
 	}
-	
+
 	@Test
 	void fetchBatchReport_Success() throws Exception {
-		mockMvc.perform(
-				get("/api/batches/" + LocalDate.now() + "-1").contentType(MediaType.APPLICATION_JSON))
+		mockMvc.perform(get("/api/batches/" + LocalDate.now() + "-1").contentType(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk())
 				.andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
 	}
-	
+
 	@Test
 	void fetchBatchReport_Failure() throws Exception {
-		mockMvc.perform(
-				get("/api/batches/" + null).contentType(MediaType.APPLICATION_JSON))
+		mockMvc.perform(get("/api/batches/" + null).contentType(MediaType.APPLICATION_JSON))
 				.andExpect(status().isBadRequest());
 	}
-	
+
 	@Test
 	void fetchFailedTransfersByBatch_Success() throws Exception {
-		mockMvc.perform(
-				get("/api/batches/transfers/failed/refLot:" + LocalDate.now() + "-1").contentType(MediaType.APPLICATION_JSON))
-				.andExpect(status().isOk())
+		mockMvc.perform(get("/api/batches/transfers/failed/refLot:" + LocalDate.now() + "-1")
+				.contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
 				.andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
 	}
-	
+
 	@Test
 	void fetchFailedTransfersByBatch_Failure() throws Exception {
-		mockMvc.perform(
-				get("/api/batches/transfers/failed/refLot:" + null).contentType(MediaType.APPLICATION_JSON))
+		mockMvc.perform(get("/api/batches/transfers/failed/refLot:" + null).contentType(MediaType.APPLICATION_JSON))
 				.andExpect(status().isBadRequest());
 	}
-	
+
 	@Test
 	void fetchFailedTransfersByDateInterval_Success() throws Exception {
-		mockMvc.perform(
-				get("/api/batches/transfers/failed/byDate").contentType(MediaType.APPLICATION_JSON).param("lowLimit", "2026-04-20").param("highLimit", "2026-05-20"))
-				.andExpect(status().isOk())
+		mockMvc.perform(get("/api/batches/transfers/failed/byDate").contentType(MediaType.APPLICATION_JSON)
+				.param("lowLimit", "2026-04-20").param("highLimit", "2026-05-20")).andExpect(status().isOk())
 				.andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
 	}
-	
+
 	@Test
 	void fetchFailedTransfersByDateInterval_Failure() throws Exception {
-		mockMvc.perform(
-				get("/api/batches/transfers/failed/byDate").contentType(MediaType.APPLICATION_JSON))
+		mockMvc.perform(get("/api/batches/transfers/failed/byDate").contentType(MediaType.APPLICATION_JSON))
 				.andExpect(status().isBadRequest());
 	}
-	
+
 	@Test
 	void fetchFailedTransfersByDestAccount_Success() throws Exception {
-		mockMvc.perform(
-				get("/api/batches/transfers/failed/destAccount:" + mockBTR3.getDestinationAccount()).contentType(MediaType.APPLICATION_JSON))
-				.andExpect(status().isOk())
+		mockMvc.perform(get("/api/batches/transfers/failed/destAccount:" + mockBTR3.getDestinationAccount())
+				.contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
 				.andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
 	}
-	
+
 	@Test
 	void fetchFailedTransfersByDestAccount_Failure() throws Exception {
-		mockMvc.perform(
-				get("/api/batches/transfers/failed/byDate").contentType(MediaType.APPLICATION_JSON))
+		mockMvc.perform(get("/api/batches/transfers/failed/byDate").contentType(MediaType.APPLICATION_JSON))
+				.andExpect(status().isBadRequest());
+	}
+
+	/*
+	 * @Test void shouldReplayDelayedBatchTransfers_Success() throws Exception {
+	 * mockMvc.perform( post("/api/batches/" + LocalDate.now() +
+	 * "-1/replay").contentType(MediaType.APPLICATION_JSON))
+	 * .andExpect(status().isOk())
+	 * .andExpect(MockMvcResultMatchers.content().contentType(MediaType.
+	 * APPLICATION_JSON)); }
+	 */
+
+	@Test
+	void shouldReplayDelayedBatchTransfers_Failure() throws Exception {
+		mockMvc.perform(post("/api/batches/" + "0001-01-01-1" + "/replay").contentType(MediaType.APPLICATION_JSON))
 				.andExpect(status().isBadRequest());
 	}
 

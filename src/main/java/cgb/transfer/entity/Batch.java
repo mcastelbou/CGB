@@ -2,6 +2,7 @@ package cgb.transfer.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
+import cgb.transfer.dto.BatchRequest;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -50,6 +51,18 @@ public class Batch {
 	@JsonManagedReference
 	@OneToMany(mappedBy = "batch", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<BatchTransfer> transferList = new ArrayList<BatchTransfer>();
+
+	// Constructeurs
+	public Batch() {
+	}
+
+	public Batch(BatchRequest br) {
+		super();
+		this.refBatch = br.getRefBatch();
+		this.sourceAccount = br.getSourceAccount();
+		this.description = br.getDescription();
+		this.status = "received";
+	}
 
 	// Getters & Setters
 
@@ -168,5 +181,23 @@ public class Batch {
 	 */
 	public void addTransfer(BatchTransfer transferRequest) {
 		this.transferList.add(transferRequest);
+	}
+
+	/**
+	 * Méthode pour déterminer si un lot contient des virements annulés pour fonds
+	 * insuffisants.
+	 * 
+	 * @return True s'il en contient, sinon false. Si le virement n'est pas encore
+	 *         entièrement exécuté (état 'received') on renvoie false aussi.
+	 */
+	public boolean hasDelays() {
+		if (this.status.equals("closed")) {
+			for (BatchTransfer batchTransfer : this.transferList) {
+				if (batchTransfer.getStatus().equals("delayed")) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 }

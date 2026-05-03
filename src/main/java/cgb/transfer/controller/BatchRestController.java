@@ -4,7 +4,6 @@ import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,6 +18,7 @@ import cgb.transfer.dto.BatchTransferRequest;
 import cgb.transfer.entity.Batch;
 import cgb.transfer.entity.BatchTransfer;
 import cgb.transfer.exception.BatchException;
+import cgb.transfer.exception.BatchException.BatchFailure;
 import cgb.transfer.exception.CreateTransferException;
 import cgb.transfer.service.BatchService;
 
@@ -58,7 +58,7 @@ public class BatchRestController {
 			// Uniquement renvoyée lorsque le lot (hormis la liste de virements) en lui même
 			// contient des erreurs.
 			TransferResponse errorResponse = new TransferResponse("FAILURE", e.getMessage());
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+			return ResponseEntity.badRequest().body(errorResponse);
 		}
 	}
 
@@ -76,7 +76,39 @@ public class BatchRestController {
 			return ResponseEntity.ok(batch);
 		} catch (BatchException e) {
 			TransferResponse errorResponse = new TransferResponse("FAILURE", e.getMessage());
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+			return ResponseEntity.badRequest().body(errorResponse);
+		}
+	}
+
+	/**
+	 * Méthode POST de la route de rejeu des virements par lot annulés pour fonds
+	 * insufisants.
+	 * 
+	 * @param refBatch La référence du lot dont au moins un des virements a été
+	 *                 annulé.
+	 * @return Les infos du lot créé pour le rejeu de ces virements uniquement.
+	 */
+	@PostMapping("/{refBatch}/replay")
+	public ResponseEntity<?> replayBatchContainingDelays(@PathVariable String refBatch) {
+		try {
+			Batch oldBatch = batchService.findBatch(refBatch);
+
+			if (!oldBatch.hasDelays()) {
+				throw new BatchException(BatchFailure.BATCH_DOESNT_CONTAIN_DELAYS);
+			}
+
+			BatchRequest batchRequest = BatchRequest.BatchToDTO(oldBatch);
+
+			batchRequest.setRefBatch(null);
+			batchRequest.setDescription("REJEU " + oldBatch.getDescription());
+
+			Batch newBatch = batchService.createBatch(batchRequest);
+			batchService.replayBatch(oldBatch, newBatch.getRefBatch());
+
+			return ResponseEntity.ok(newBatch);
+		} catch (Exception e) {
+			TransferResponse errorResponse = new TransferResponse("FAILURE", e.getMessage());
+			return ResponseEntity.badRequest().body(errorResponse);
 		}
 	}
 
@@ -94,7 +126,7 @@ public class BatchRestController {
 			return ResponseEntity.ok(list);
 		} catch (BatchException e) {
 			TransferResponse errorResponse = new TransferResponse("FAILURE", e.getMessage());
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+			return ResponseEntity.badRequest().body(errorResponse);
 		}
 	}
 
@@ -125,4 +157,5 @@ public class BatchRestController {
 		List<BatchTransfer> list = batchService.findFailedTransfersWithDate(lowLimit, highLimit);
 		return ResponseEntity.ok(list);
 	}
+
 }

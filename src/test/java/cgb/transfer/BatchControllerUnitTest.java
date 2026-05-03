@@ -33,22 +33,23 @@ import cgb.transfer.service.BatchService;
 public class BatchControllerUnitTest {
 
 	private static BatchTransfer mockBatchTransfer;
-	private static Batch mockBatch;
 	private static BatchRequest mockBatchRequest;
+	private static Batch mockBatch;
+	private static Batch mockReplayedBatch;
 
 	@Autowired
 	private MockMvc mockMvc;
 
 	@MockitoBean
 	private BatchService batchService;
-	
+
 	@BeforeAll
 	static void initObjects() {
 		mockBatchRequest = new BatchRequest();
-		mockBatchRequest.setRefBatch(LocalDate.now() + "-1");
+		mockBatchRequest.setRefBatch("2026-05-01-1");
 		mockBatchRequest.setSourceAccount("FR7618315100001028575571887");
 		mockBatchRequest.setDescription("Lot basique");
-		
+
 		mockBatchTransfer = new BatchTransfer();
 		mockBatchTransfer.setId(1L);
 		mockBatchTransfer.setAmount(2.00);
@@ -57,17 +58,21 @@ public class BatchControllerUnitTest {
 		mockBatchTransfer.setDestinationAccount("FR7618315100000406690515531");
 		mockBatchTransfer.setStatus("delayed");
 		mockBatchTransfer.setBatch(mockBatch);
-		
+
 		List<BatchTransfer> transferList = new ArrayList<BatchTransfer>();
 		transferList.add(mockBatchTransfer);
-		
+
 		mockBatch = new Batch();
-		mockBatch.setRefBatch(LocalDate.now() + "-1");
+		mockBatch.setRefBatch("2026-05-01-1");
 		mockBatch.setSourceAccount("FR7618315100001028575571887");
-		mockBatch.setStartDate(LocalDate.now());
+		mockBatch.setStartDate(LocalDate.of(2026, 5, 1));
 		mockBatch.setDescription("Lot basique");
 		mockBatch.setStatus("received");
 		mockBatch.setTransferList(transferList);
+
+		mockReplayedBatch = mockBatch;
+		mockReplayedBatch.setRefBatch(LocalDate.now() + "-1");
+		mockReplayedBatch.setDescription("REJEU Lot basique");
 	}
 
 	@Test
@@ -82,31 +87,46 @@ public class BatchControllerUnitTest {
 				.andExpect(MockMvcResultMatchers.jsonPath("$.status").exists());
 	}
 
-	/*@Test
-	void shouldReturnBatch_Failure() throws Exception {
-		mockBatchRequest.setSourceAccount("XXXXXXXXXXXXXXXXXXXXXXXXXXX");
+	/*
+	 * @Test void shouldReturnBatch_Failure() throws Exception {
+	 * mockBatchRequest.setSourceAccount("XXXXXXXXXXXXXXXXXXXXXXXXXXX");
+	 * 
+	 * mockMvc.perform(
+	 * post("/api/batches").contentType(MediaType.APPLICATION_JSON).content(
+	 * asJsonString(mockBatchRequest))) .andExpect(status().isBadRequest()); }
+	 */
 
-		mockMvc.perform(
-				post("/api/batches").contentType(MediaType.APPLICATION_JSON).content(asJsonString(mockBatchRequest)))
-				.andExpect(status().isBadRequest());
-	}*/
-	
 	@Test
 	void shouldReturnBatchReport_Success() throws Exception {
 		when(batchService.findBatch(Mockito.any(String.class))).thenReturn(mockBatch);
-		
-		mockMvc.perform(
-				get("/api/batches/" + LocalDate.now() + "-1").contentType(MediaType.APPLICATION_JSON))
+
+		mockMvc.perform(get("/api/batches/" + LocalDate.now() + "-1").contentType(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk())
 				.andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
 	}
-	
-	/*@Test
-	void shouldReturnBatchReport_Failure() throws Exception {
-		mockMvc.perform(
-				get("/api/batches/" + null).contentType(MediaType.APPLICATION_JSON))
-				.andExpect(status().isBadRequest());
-	}*/
+
+	/*
+	 * @Test void shouldReturnBatchReport_Failure() throws Exception {
+	 * mockMvc.perform( get("/api/batches/" +
+	 * null).contentType(MediaType.APPLICATION_JSON))
+	 * .andExpect(status().isBadRequest()); }
+	 */
+
+	/*
+	 * @Test void shouldReturnReplayBatchTransfer_Success() throws Exception {
+	 * when(batchService.findBatch(Mockito.any(String.class))).thenReturn(mockBatch)
+	 * ; when(batchService.createBatch(Mockito.any(BatchRequest.class))).thenReturn(
+	 * mockReplayedBatch);
+	 * when(Mockito.any(Batch.class).hasDelays()).thenReturn(true);
+	 * 
+	 * mockMvc.perform(post("/api/batches/2026-05-01-1/replay").contentType(
+	 * MediaType.APPLICATION_JSON)) .andExpect(status().isOk())
+	 * .andExpect(MockMvcResultMatchers.content().contentType(MediaType.
+	 * APPLICATION_JSON))
+	 * .andExpect(MockMvcResultMatchers.jsonPath("$.description").exists())
+	 * .andExpect(MockMvcResultMatchers.jsonPath("$.description").
+	 * value("REJEU Lot basique.")); }
+	 */
 
 	public static String asJsonString(final Object obj) {
 		try {
