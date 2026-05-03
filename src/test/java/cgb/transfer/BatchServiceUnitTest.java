@@ -33,6 +33,7 @@ public class BatchServiceUnitTest {
 
 	private static Account destinationAccount;
 	private static BatchTransfer mockBatchTransfer;
+	private static BatchTransfer canceledMockBatchTransfer;
 
 	@Mock
 	private AccountRepository accountRepo;
@@ -69,6 +70,9 @@ public class BatchServiceUnitTest {
 		mockBatchTransfer.setDescription("Deux euros !");
 		mockBatchTransfer.setDestinationAccount(destinationAccount.getAccountNumber());
 
+		canceledMockBatchTransfer = mockBatchTransfer;
+		canceledMockBatchTransfer.setStatus("canceled");
+
 		mockBatch.addTransfer(mockBatchTransfer);
 	}
 
@@ -101,7 +105,7 @@ public class BatchServiceUnitTest {
 
 	@Test
 	void shouldReturnBatchTransfer_Success() {
-		when(accountRepo.findById("FR7618315100001028575571887")).thenReturn(Optional.of(destinationAccount));
+		when(accountRepo.findById("FR7618315100001028575571887")).thenReturn(Optional.of(sourceAccount));
 		when(batchTransferRepo.save(Mockito.any(BatchTransfer.class))).thenReturn(mockBatchTransfer);
 
 		BatchTransferRequest btr = BatchTransferRequest.BatchTransferToDTO(mockBatchTransfer);
@@ -113,27 +117,59 @@ public class BatchServiceUnitTest {
 		assertTrue(bt.getBatch().equals(mockBatch));
 	}
 
-	/*@Test
-	void shouldReturnBatchTransfer_Failure() {
-		when(accountRepo.findById("FR7618315100001028575571887")).thenReturn(Optional.of(destinationAccount));
+	/*
+	 * @Test void shouldReturnBatchTransfer_Failure() {
+	 * when(accountRepo.findById("FR7618315100001028575571887")).thenReturn(Optional
+	 * .of(destinationAccount));
+	 * when(batchTransferRepo.save(Mockito.any(BatchTransfer.class))).thenReturn(
+	 * mockBatchTransfer);
+	 * 
+	 * mockBatchTransfer.setDestinationAccount(null);
+	 * 
+	 * BatchTransferRequest btr =
+	 * BatchTransferRequest.BatchTransferToDTO(mockBatchTransfer);
+	 * 
+	 * BatchTransfer bt = batchService.createBatchTransfer(mockBatch, btr);
+	 * assertTrue(bt.getStatus().equals("failure"));
+	 * 
+	 * btr.setDestinationAccount("FR7618315100001028575571887");
+	 * btr.setAmount(-2.00);
+	 * 
+	 * bt = batchService.createBatchTransfer(mockBatch, btr);
+	 * assertTrue(bt.getStatus().equals("canceled"));
+	 * 
+	 * btr.setAmount(2000000.00);
+	 * 
+	 * bt = batchService.createBatchTransfer(mockBatch, btr);
+	 * assertTrue(bt.getStatus().equals("delayed")); }
+	 */
+
+	@Test
+	void shouldReturnRetryBatchTransfer_Success() {
+		when(batchTransferRepo.findById(Mockito.any(Long.class))).thenReturn(Optional.of(mockBatchTransfer));
 		when(batchTransferRepo.save(Mockito.any(BatchTransfer.class))).thenReturn(mockBatchTransfer);
+		when(accountRepo.findById("FR7618315100001028575571887")).thenReturn(Optional.of(sourceAccount));
+		when(accountRepo.findById("FR7618315100000406690515531")).thenReturn(Optional.of(destinationAccount));
 
-		mockBatchTransfer.setDestinationAccount(null);
+		BatchTransfer bt = batchService.replayBatchTransfer(mockBatch, 1L);
+		assertTrue(bt.getCompletionDate().equals(LocalDate.now()));
+		assertTrue(bt.getAmount().equals(mockBatchTransfer.getAmount()));
+		assertTrue(bt.getStatus().equals("success"));
+	}
 
-		BatchTransferRequest btr = BatchTransferRequest.BatchTransferToDTO(mockBatchTransfer);
-
-		BatchTransfer bt = batchService.createBatchTransfer(mockBatch, btr);
-		assertTrue(bt.getStatus().equals("failure"));
-
-		btr.setDestinationAccount("FR7618315100001028575571887");
-		btr.setAmount(-2.00);
-
-		bt = batchService.createBatchTransfer(mockBatch, btr);
-		assertTrue(bt.getStatus().equals("canceled"));
-
-		btr.setAmount(2000000.00);
-
-		bt = batchService.createBatchTransfer(mockBatch, btr);
-		assertTrue(bt.getStatus().equals("delayed"));
-	}*/
+	/*
+	 * @Test void shouldReturnRetryBatchTransfer_Failure() {
+	 * when(batchTransferRepo.findById(Mockito.any(Long.class))).thenReturn(Optional
+	 * .of(mockBatchTransfer));
+	 * when(batchTransferRepo.save(Mockito.any(BatchTransfer.class))).thenReturn(
+	 * canceledMockBatchTransfer);
+	 * when(accountRepo.findById("FR7618315100001028575571887")).thenReturn(Optional
+	 * .of(sourceAccount));
+	 * when(accountRepo.findById("FR7618315100000406690515531")).thenReturn(Optional
+	 * .of(destinationAccount));
+	 * 
+	 * mockBatchTransfer.setAmount(50000.00); BatchTransfer bt =
+	 * batchService.replayBatchTransfer(mockBatch, 1L);
+	 * assertTrue(bt.getStatus().equals("canceled")); }
+	 */
 }

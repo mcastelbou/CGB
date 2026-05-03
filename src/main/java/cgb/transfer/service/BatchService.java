@@ -171,19 +171,19 @@ public class BatchService {
 			BatchTransfer invalidBatchTransfer = fallbackBatchTransfer(batch, transferRequest,
 					Status.FAILURE.getName());
 			log.write("Error during transfer n°" + invalidBatchTransfer.getId() + " : DESTINATION_ACCOUNT_NOT_FOUND");
-			return invalidBatchTransfer;
+			return batchTransferRepo.save(invalidBatchTransfer);
 		} else if (amount < 0) {
 			// Le montant du virement est négatif.
 			BatchTransfer invalidBatchTransfer = fallbackBatchTransfer(batch, transferRequest,
 					Status.CANCELED.getName());
 			log.write("Error during transfer n°" + invalidBatchTransfer.getId() + " : NEGATIVE_AMOUNT");
-			return invalidBatchTransfer;
+			return batchTransferRepo.save(invalidBatchTransfer);
 		} else if (sourceAccount.getSolde().compareTo(amount) < 0) {
 			// Les fonds du compte source sont insuffisants.
 			BatchTransfer invalidBatchTransfer = fallbackBatchTransfer(batch, transferRequest,
 					Status.DELAYED.getName());
 			log.write("Error during transfer n°" + invalidBatchTransfer.getId() + " : INSUFFICIENT_FUNDS");
-			return invalidBatchTransfer;
+			return batchTransferRepo.save(invalidBatchTransfer);
 		}
 
 		Account destinationAccount = destAccount.get();
