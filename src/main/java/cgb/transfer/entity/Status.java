@@ -4,7 +4,8 @@ public enum Status {
 	SUCCESS("success"),
 	DELAYED("delayed"),
 	FAILURE("failure"),
-	CANCELED("canceled");
+	CANCELED("canceled"),
+	CLOSED("closed");
 	
 	private final String name;
 	

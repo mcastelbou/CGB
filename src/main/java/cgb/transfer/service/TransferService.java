@@ -7,6 +7,7 @@ import cgb.transfer.entity.Account;
 import cgb.transfer.entity.Transfer;
 import cgb.transfer.exception.*;
 import cgb.transfer.exception.DeleteTransferException.FailureTransfert;
+import cgb.transfer.exception.TransferException;
 import cgb.transfer.exception.CreateTransferException.TransferFailure;
 import cgb.transfer.repository.AccountRepository;
 import cgb.transfer.repository.TransferRepository;

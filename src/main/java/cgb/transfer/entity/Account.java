@@ -36,5 +36,10 @@ public class Account {
 	public void setAccountNumber(String accountNumber) {
 		this.accountNumber = accountNumber;
 	}
+	
+	@Override
+	public boolean equals(Object o) {
+		return this.accountNumber.equals(((Account) o).accountNumber);
+	}
 
 }

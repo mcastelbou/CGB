@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -17,8 +18,10 @@ import cgb.transfer.dto.BatchRequest;
 import cgb.transfer.dto.BatchTransferRequest;
 import cgb.transfer.entity.Batch;
 import cgb.transfer.entity.BatchTransfer;
+import cgb.transfer.entity.Transfer;
 import cgb.transfer.exception.BatchException;
 import cgb.transfer.exception.BatchException.BatchFailure;
+import cgb.transfer.exception.BatchTransferException;
 import cgb.transfer.exception.CreateTransferException;
 import cgb.transfer.service.BatchService;
 
@@ -156,6 +159,30 @@ public class BatchRestController {
 			@RequestParam LocalDate highLimit) {
 		List<BatchTransfer> list = batchService.findFailedTransfersWithDate(lowLimit, highLimit);
 		return ResponseEntity.ok(list);
+	}
+	
+	@GetMapping("{refBatch}/failure/customer/{idCustomer}")
+	public ResponseEntity<?> getTransfersInFailureWithBatchAndCustomer(@PathVariable String refBatch, @PathVariable Long idCustomer) {
+		try {
+			List<BatchTransfer> list = batchService.findFailedTransfersWithBatchAndCustomer(refBatch, idCustomer);
+			
+		} catch (Exception e) {
+			TransferResponse errorResponse = new TransferResponse("FAILURE", e.getMessage());
+			return ResponseEntity.badRequest().body(errorResponse);
+		}
+		return null;
+	}
+	
+
+	@PutMapping("transfers/{idTransfer}/close")
+	public ResponseEntity<?> closeTransfer(@PathVariable Long idTransfer) {
+		try {
+			BatchTransfer transfer = batchService.closeTransfer(idTransfer);
+			return ResponseEntity.ok(transfer);
+		} catch (BatchTransferException e) {
+			TransferResponse errorResponse = new TransferResponse("FAILURE", e.getMessage());
+			return ResponseEntity.badRequest().body(errorResponse);
+		}
 	}
 
 }

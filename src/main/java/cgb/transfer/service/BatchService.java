@@ -10,14 +10,20 @@ import cgb.transfer.dto.BatchTransferRequest;
 import cgb.transfer.entity.Account;
 import cgb.transfer.entity.Batch;
 import cgb.transfer.entity.BatchTransfer;
+import cgb.transfer.entity.Customer;
 import cgb.transfer.entity.Status;
 import cgb.transfer.exception.CreateTransferException;
+import cgb.transfer.exception.BatchTransferException;
+import cgb.transfer.exception.BatchTransferException.BatchTransferFailure;
 import cgb.transfer.exception.BatchException;
 import cgb.transfer.exception.BatchException.BatchFailure;
 import cgb.transfer.exception.CreateTransferException.TransferFailure;
+import cgb.transfer.exception.CustomerException;
+import cgb.transfer.exception.CustomerException.CustomerFailure;
 import cgb.transfer.repository.AccountRepository;
 import cgb.transfer.repository.BatchRepository;
 import cgb.transfer.repository.BatchTransferRepository;
+import cgb.transfer.repository.CustomerRepository;
 import cgb.utils.CGBLogger;
 
 import java.time.LocalDate;
@@ -41,6 +47,9 @@ public class BatchService {
 	 */
 	@Autowired
 	private BatchRepository batchRepo;
+	
+	@Autowired
+	private CustomerRepository customerRepo;
 
 	/**
 	 * Le lien vers le repository des virements soumis par lot.
@@ -326,5 +335,22 @@ public class BatchService {
 		Batch batch = batchRepo.findByRefBatch(batchRef)
 				.orElseThrow(() -> new BatchException(BatchFailure.BATCH_NOT_FOUND));
 		return batchTransferRepo.findByBatchAndStatus(batch, Status.DELAYED.getName());
+	}
+	
+	public List<BatchTransfer> findFailedTransfersWithBatchAndCustomer(String refBatch, Long idCustomer) throws BatchException, CustomerException {
+		Customer customer = customerRepo.findById(idCustomer).orElseThrow(() -> new CustomerException(CustomerFailure.CUSTOMER_NOT_FOUND));		
+		Batch batch = batchRepo.findByRefBatch(refBatch).orElseThrow(() -> new BatchException(BatchFailure.BATCH_NOT_FOUND));
+		if (customer.getMyAccounts().contains(batch.getSourceAccount())) {			
+			return batchTransferRepo.findByBatchAndStatus(batch, Status.FAILURE.getName());
+		} else {
+			throw new CustomerException(CustomerFailure.INVALID_ACCOUNT);
+		}
+	}
+	
+	@Transactional
+	public BatchTransfer closeTransfer(Long id) throws BatchTransferException {
+		BatchTransfer transfer = batchTransferRepo.findById(id).orElseThrow(() -> new BatchTransferException(BatchTransferFailure.BATCH_TRANSFER_NOT_FOUND));
+		transfer.setStatus(Status.CLOSED.getName());
+		return batchTransferRepo.save(transfer);
 	}
 }

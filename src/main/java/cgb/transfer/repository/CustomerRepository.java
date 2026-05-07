@@ -10,6 +10,6 @@ import cgb.transfer.entity.Customer;
  * des requêtes comme vu en cours (Cours_Java21).
  */
 @Repository
-public interface CustomerRepository extends JpaRepository<Customer, String> {
+public interface CustomerRepository extends JpaRepository<Customer, Long> {
 
 }
